@@ -1,0 +1,27 @@
+{
+  "name": "ainterview",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @ainterview/shared && npm run build -w @ainterview/api && npm run build -w @ainterview/speech && npm run build -w @ainterview/web",
+    "dev": "npm run dev -w @ainterview/api",
+    "dev:api": "npm run dev -w @ainterview/api",
+    "dev:speech": "npm run dev -w @ainterview/speech",
+    "dev:web": "npm run dev -w @ainterview/web",
+    "test": "npm run test -w @ainterview/api",
+    "prisma:generate": "npm run prisma:generate -w @ainterview/api",
+    "prisma:migrate": "npm run prisma:migrate -w @ainterview/api"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@fontsource/geist-mono": "^5.2.7",
+    "@fontsource/geist-sans": "^5.2.5"
+  }
+}

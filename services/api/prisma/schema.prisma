@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SessionStatus {
+  active
+  completed
+  failed
+}
+
+enum SessionCompletionReason {
+  ai_completed
+  user_stopped
+  failed
+}
+
+model User {
+  id             String             @id @default(cuid())
+  email          String             @unique
+  displayName    String
+  passwordHash   String
+  templates      InterviewTemplate[]
+  sessions       InterviewSession[]
+  likes          TemplateLike[]
+  followers      UserFollow[]       @relation("followedBy")
+  following      UserFollow[]       @relation("follows")
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+}
+
+model InterviewTemplate {
+  id                String             @id @default(cuid())
+  authorId          String
+  author            User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title             String
+  category          String
+  description       String
+  systemInstruction String
+  voiceModel        String             @default("aura-2-thalia-en")
+  isPublic          Boolean            @default(true)
+  likes             TemplateLike[]
+  sessions          InterviewSession[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([authorId])
+  @@index([category])
+}
+
+model TemplateLike {
+  id         String            @id @default(cuid())
+  userId     String
+  templateId String
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template   InterviewTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  createdAt  DateTime          @default(now())
+
+  @@unique([userId, templateId])
+  @@index([templateId])
+}
+
+model UserFollow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User     @relation("follows", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("followedBy", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
+
+model InterviewSession {
+  id                 String                  @id @default(cuid())
+  userId             String
+  templateId         String
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template           InterviewTemplate       @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  status             SessionStatus           @default(active)
+  minQuestionCount   Int                     @default(3)
+  maxQuestionCount   Int                     @default(12)
+  plannedQuestionCount Int
+  rubric             Json
+  plannedCoverage    Json
+  score              Int?
+  feedback           Json?
+  completionReason   SessionCompletionReason?
+  turns              InterviewTurn[]
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  completedAt        DateTime?
+
+  @@index([userId, status])
+  @@index([templateId])
+}
+
+model InterviewTurn {
+  id                 String           @id @default(cuid())
+  sessionId          String
+  session            InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  turnIndex          Int
+  questionText       String
+  questionAudioRef   String?
+  answerAudioRef     String?
+  answerTranscript   String?
+  aiDecisionMetadata Json?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([sessionId, turnIndex])
+  @@index([sessionId, turnIndex])
+}

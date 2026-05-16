@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ainterview}
+      POSTGRES_USER: ${POSTGRES_USER:-ainterview}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ainterview}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ainterview} -d ${POSTGRES_DB:-ainterview}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./services/api/.env.example
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ainterview}:${POSTGRES_PASSWORD:-ainterview}@postgres:5432/${POSTGRES_DB:-ainterview}
+      NODE_ENV: development
+    ports:
+      - "${API_PORT:-4000}:4000"
+
+  speech:
+    build:
+      context: .
+      dockerfile: services/speech/Dockerfile
+    env_file:
+      - ./services/speech/.env.example
+    environment:
+      NODE_ENV: development
+    ports:
+      - "${SPEECH_PORT:-4001}:4001"
+
+volumes:
+  pg_data:
