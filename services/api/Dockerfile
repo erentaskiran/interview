@@ -1,5 +1,6 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
+RUN apk add --no-cache openssl
 
 COPY package.json package-lock.json* tsconfig.base.json ./
 COPY packages/shared/package.json ./packages/shared/package.json
@@ -9,6 +10,7 @@ RUN npm install
 
 FROM node:22-alpine AS builder
 WORKDIR /app
+RUN apk add --no-cache openssl
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./package.json
@@ -23,6 +25,7 @@ RUN npm run build -w @ainterview/shared && \
 
 FROM node:22-alpine AS production
 WORKDIR /app
+RUN apk add --no-cache openssl
 
 COPY --from=builder /app/services/api/dist ./dist
 COPY --from=builder /app/services/api/prisma ./prisma
