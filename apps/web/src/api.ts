@@ -22,11 +22,7 @@ const parseErrorMessage = async (response: Response) => {
       message?: string;
       error?: string;
     };
-    return (
-      payload.message ??
-      payload.error ??
-      `Request failed with status ${response.status}`
-    );
+    return payload.message ?? payload.error ?? `Request failed with status ${response.status}`;
   } catch {
     return `Request failed with status ${response.status}`;
   }
@@ -41,7 +37,7 @@ export const createApiClient = (): ApiClient => {
     body?: unknown
   ): Promise<T> => {
     const headers: Record<string, string> = {
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
     if (body !== undefined) {
@@ -50,7 +46,7 @@ export const createApiClient = (): ApiClient => {
 
     const init: RequestInit = {
       method,
-      headers
+      headers,
     };
     if (body !== undefined) {
       init.body = JSON.stringify(body);
@@ -73,7 +69,7 @@ export const createApiClient = (): ApiClient => {
     },
     get: <T>(path: string) => request<T>("GET", path),
     post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
-    del: <T>(path: string) => request<T>("DELETE", path)
+    del: <T>(path: string) => request<T>("DELETE", path),
   };
 };
 

@@ -33,14 +33,21 @@ export function ResultSummary({
   }[completionReason];
 
   return (
-    <div className="card" style={{ padding: 22, display: "flex", flexDirection: "column", gap: 18 }}>
+    <div
+      className="card"
+      style={{ padding: 22, display: "flex", flexDirection: "column", gap: 18 }}
+    >
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <div className="gauge" style={{ "--p": score / 100 } as React.CSSProperties}>
           <span className="gauge__val">{score}</span>
         </div>
         <div style={{ minWidth: 0 }}>
-          <div className="eyebrow" style={{ marginBottom: 4 }}>Overall</div>
-          <div className="h1" style={{ fontWeight: 500 }}>{headline}</div>
+          <div className="eyebrow" style={{ marginBottom: 4 }}>
+            Overall
+          </div>
+          <div className="h1" style={{ fontWeight: 500 }}>
+            {headline}
+          </div>
           <div
             className="small-text"
             style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 8 }}
@@ -64,11 +71,7 @@ export function ResultSummary({
           </div>
           <ul style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {strengths.map((s, i) => (
-              <li
-                key={i}
-                className="body-text"
-                style={{ paddingLeft: 14, position: "relative" }}
-              >
+              <li key={i} className="body-text" style={{ paddingLeft: 14, position: "relative" }}>
                 <span
                   style={{
                     position: "absolute",
@@ -91,11 +94,7 @@ export function ResultSummary({
           </div>
           <ul style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {improvements.map((s, i) => (
-              <li
-                key={i}
-                className="body-text"
-                style={{ paddingLeft: 14, position: "relative" }}
-              >
+              <li key={i} className="body-text" style={{ paddingLeft: 14, position: "relative" }}>
                 <span
                   style={{
                     position: "absolute",

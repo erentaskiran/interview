@@ -7,13 +7,13 @@ describe("DeepgramClient", () => {
       const client = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         headers: new Map([["content-type", "audio/mpeg"]]),
-        arrayBuffer: () => Promise.resolve(Buffer.from("fake-audio").buffer)
+        arrayBuffer: () => Promise.resolve(Buffer.from("fake-audio").buffer),
       } as unknown as Response);
 
       const result = await client.textToSpeech("Hello world");
@@ -26,8 +26,8 @@ describe("DeepgramClient", () => {
           method: "POST",
           headers: expect.objectContaining({
             Authorization: "Token test-key",
-            "Content-Type": "application/json"
-          })
+            "Content-Type": "application/json",
+          }),
         })
       );
     });
@@ -36,13 +36,13 @@ describe("DeepgramClient", () => {
       const client = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         headers: new Map([["content-type", "audio/mpeg"]]),
-        arrayBuffer: () => Promise.resolve(Buffer.from("fake-audio").buffer)
+        arrayBuffer: () => Promise.resolve(Buffer.from("fake-audio").buffer),
       } as unknown as Response);
 
       await client.textToSpeech("Hello", "custom-voice");
@@ -56,29 +56,25 @@ describe("DeepgramClient", () => {
     it("throws when not configured", async () => {
       const client = new DeepgramClient({
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
-      await expect(client.textToSpeech("Hello")).rejects.toThrow(
-        "DEEPGRAM_NOT_CONFIGURED"
-      );
+      await expect(client.textToSpeech("Hello")).rejects.toThrow("DEEPGRAM_NOT_CONFIGURED");
     });
 
     it("throws on non-ok response", async () => {
       const client = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
-        status: 500
+        status: 500,
       } as Response);
 
-      await expect(client.textToSpeech("Hello")).rejects.toThrow(
-        "DEEPGRAM_TTS_FAILED_500"
-      );
+      await expect(client.textToSpeech("Hello")).rejects.toThrow("DEEPGRAM_TTS_FAILED_500");
     });
   });
 
@@ -87,7 +83,7 @@ describe("DeepgramClient", () => {
       const client = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
       global.fetch = vi.fn().mockResolvedValue({
@@ -97,11 +93,11 @@ describe("DeepgramClient", () => {
             results: {
               channels: [
                 {
-                  alternatives: [{ transcript: "Hello world" }]
-                }
-              ]
-            }
-          })
+                  alternatives: [{ transcript: "Hello world" }],
+                },
+              ],
+            },
+          }),
       } as Response);
 
       const result = await client.speechToText("base64audio", "audio/wav");
@@ -113,8 +109,8 @@ describe("DeepgramClient", () => {
           method: "POST",
           headers: expect.objectContaining({
             Authorization: "Token test-key",
-            "Content-Type": "audio/wav"
-          })
+            "Content-Type": "audio/wav",
+          }),
         })
       );
     });
@@ -123,7 +119,7 @@ describe("DeepgramClient", () => {
       const client = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
       global.fetch = vi.fn().mockResolvedValue({
@@ -131,42 +127,42 @@ describe("DeepgramClient", () => {
         json: () =>
           Promise.resolve({
             results: {
-              channels: [{ alternatives: [{ transcript: "" }] }]
-            }
-          })
+              channels: [{ alternatives: [{ transcript: "" }] }],
+            },
+          }),
       } as Response);
 
-      await expect(
-        client.speechToText("base64audio", "audio/wav")
-      ).rejects.toThrow("DEEPGRAM_EMPTY_TRANSCRIPT");
+      await expect(client.speechToText("base64audio", "audio/wav")).rejects.toThrow(
+        "DEEPGRAM_EMPTY_TRANSCRIPT"
+      );
     });
 
     it("throws when not configured", async () => {
       const client = new DeepgramClient({
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
-      await expect(
-        client.speechToText("base64audio", "audio/wav")
-      ).rejects.toThrow("DEEPGRAM_NOT_CONFIGURED");
+      await expect(client.speechToText("base64audio", "audio/wav")).rejects.toThrow(
+        "DEEPGRAM_NOT_CONFIGURED"
+      );
     });
 
     it("throws on non-ok response", async () => {
       const client = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
-        status: 400
+        status: 400,
       } as Response);
 
-      await expect(
-        client.speechToText("base64audio", "audio/wav")
-      ).rejects.toThrow("DEEPGRAM_STT_FAILED_400");
+      await expect(client.speechToText("base64audio", "audio/wav")).rejects.toThrow(
+        "DEEPGRAM_STT_FAILED_400"
+      );
     });
   });
 });

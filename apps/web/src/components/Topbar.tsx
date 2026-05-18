@@ -29,7 +29,7 @@ export function Topbar({
   onOpenLiked,
   onOpenSessions,
   onOpenSettings,
-  onLogout
+  onLogout,
 }: TopbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -47,11 +47,16 @@ export function Topbar({
           ? { id: "sessions", label: "Sessions", icon: "headset" as const, onClick: onOpenSessions }
           : null,
         onOpenSettings
-          ? { id: "settings", label: "Settings", icon: "settings" as const, onClick: onOpenSettings }
+          ? {
+              id: "settings",
+              label: "Settings",
+              icon: "settings" as const,
+              onClick: onOpenSettings,
+            }
           : null,
         onLogout
           ? { id: "logout", label: "Logout", icon: "close" as const, onClick: onLogout }
-          : null
+          : null,
       ].filter(Boolean) as Array<{
         id: string;
         label: string;
@@ -85,13 +90,10 @@ export function Topbar({
         >
           {crumb.map((c, i) => (
             <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              {i > 0 && (
-                <Icon name="chevronR" size={12} style={{ color: "var(--ink-400)" }} />
-              )}
+              {i > 0 && <Icon name="chevronR" size={12} style={{ color: "var(--ink-400)" }} />}
               <span
                 style={{
-                  color:
-                    i === crumb.length - 1 ? "var(--ink-900)" : "var(--ink-500)",
+                  color: i === crumb.length - 1 ? "var(--ink-900)" : "var(--ink-500)",
                   fontWeight: i === crumb.length - 1 ? 500 : 400,
                 }}
               >
@@ -107,10 +109,7 @@ export function Topbar({
         </span>
       )}
       {!hideSearch && (
-        <div
-          className="top__search"
-          style={{ marginLeft: crumb || title ? 24 : 0 }}
-        >
+        <div className="top__search" style={{ marginLeft: crumb || title ? 24 : 0 }}>
           <Icon name="search" size={14} />
           <span>Search templates, prompts, people…</span>
           <span className="top__kbd">⌘K</span>

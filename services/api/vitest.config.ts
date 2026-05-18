@@ -5,11 +5,11 @@ export default defineConfig({
     pool: "forks",
     poolOptions: {
       forks: {
-        singleFork: true
-      }
+        singleFork: true,
+      },
     },
     fileParallelism: false,
     globals: false,
-    environment: "node"
-  }
+    environment: "node",
+  },
 });

@@ -17,7 +17,7 @@ describe("speech routes", () => {
     it("returns ok", async () => {
       const response = await app.inject({
         method: "GET",
-        url: "/health"
+        url: "/health",
       });
 
       expect(response.statusCode).toBe(200);
@@ -30,11 +30,11 @@ describe("speech routes", () => {
       const mockClient = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
       vi.spyOn(mockClient, "textToSpeech").mockResolvedValue({
         audioBase64: "mock-audio-data",
-        mimeType: "audio/mpeg"
+        mimeType: "audio/mpeg",
       });
 
       const mockApp = await buildTestSpeechApp(mockClient);
@@ -42,7 +42,7 @@ describe("speech routes", () => {
       const response = await mockApp.inject({
         method: "POST",
         url: "/tts",
-        payload: { text: "Hello world" }
+        payload: { text: "Hello world" },
       });
 
       expect(response.statusCode).toBe(200);
@@ -57,7 +57,7 @@ describe("speech routes", () => {
       const response = await app.inject({
         method: "POST",
         url: "/tts",
-        payload: { text: "" }
+        payload: { text: "" },
       });
 
       expect(response.statusCode).toBe(400);
@@ -69,7 +69,7 @@ describe("speech routes", () => {
       const response = await app.inject({
         method: "POST",
         url: "/tts",
-        payload: {}
+        payload: {},
       });
 
       expect(response.statusCode).toBe(400);
@@ -79,7 +79,7 @@ describe("speech routes", () => {
       const response = await app.inject({
         method: "POST",
         url: "/tts",
-        payload: { text: "a".repeat(5001) }
+        payload: { text: "a".repeat(5001) },
       });
 
       expect(response.statusCode).toBe(400);
@@ -89,14 +89,14 @@ describe("speech routes", () => {
       const unconfiguredApp = await buildTestSpeechApp(
         new DeepgramClient({
           ttsModel: "aura-2-thalia-en",
-          sttModel: "nova-3"
+          sttModel: "nova-3",
         })
       );
 
       const response = await unconfiguredApp.inject({
         method: "POST",
         url: "/tts",
-        payload: { text: "Hello" }
+        payload: { text: "Hello" },
       });
 
       expect(response.statusCode).toBe(503);
@@ -110,7 +110,7 @@ describe("speech routes", () => {
       const failingClient = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
       vi.spyOn(failingClient, "textToSpeech").mockRejectedValue(
@@ -122,7 +122,7 @@ describe("speech routes", () => {
       const response = await failingApp.inject({
         method: "POST",
         url: "/tts",
-        payload: { text: "Hello" }
+        payload: { text: "Hello" },
       });
 
       expect(response.statusCode).toBe(502);
@@ -136,7 +136,7 @@ describe("speech routes", () => {
       const customClient = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
       const spy = vi
@@ -148,7 +148,7 @@ describe("speech routes", () => {
       await customApp.inject({
         method: "POST",
         url: "/tts",
-        payload: { text: "Hello", voiceModel: "custom-voice" }
+        payload: { text: "Hello", voiceModel: "custom-voice" },
       });
 
       expect(spy).toHaveBeenCalledWith("Hello", "custom-voice");
@@ -162,7 +162,7 @@ describe("speech routes", () => {
       const mockClient = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
       vi.spyOn(mockClient, "speechToText").mockResolvedValue("Hello world");
 
@@ -171,7 +171,7 @@ describe("speech routes", () => {
       const response = await mockApp.inject({
         method: "POST",
         url: "/stt",
-        payload: { audioBase64: "base64data", mimeType: "audio/wav" }
+        payload: { audioBase64: "base64data", mimeType: "audio/wav" },
       });
 
       expect(response.statusCode).toBe(200);
@@ -185,7 +185,7 @@ describe("speech routes", () => {
       const response = await app.inject({
         method: "POST",
         url: "/stt",
-        payload: { audioBase64: "" }
+        payload: { audioBase64: "" },
       });
 
       expect(response.statusCode).toBe(400);
@@ -197,7 +197,7 @@ describe("speech routes", () => {
       const response = await app.inject({
         method: "POST",
         url: "/stt",
-        payload: { mimeType: "audio/wav" }
+        payload: { mimeType: "audio/wav" },
       });
 
       expect(response.statusCode).toBe(400);
@@ -207,7 +207,7 @@ describe("speech routes", () => {
       const response = await app.inject({
         method: "POST",
         url: "/stt",
-        payload: { audioBase64: "base64data" }
+        payload: { audioBase64: "base64data" },
       });
 
       expect(response.statusCode).toBe(400);
@@ -217,14 +217,14 @@ describe("speech routes", () => {
       const unconfiguredApp = await buildTestSpeechApp(
         new DeepgramClient({
           ttsModel: "aura-2-thalia-en",
-          sttModel: "nova-3"
+          sttModel: "nova-3",
         })
       );
 
       const response = await unconfiguredApp.inject({
         method: "POST",
         url: "/stt",
-        payload: { audioBase64: "base64data", mimeType: "audio/wav" }
+        payload: { audioBase64: "base64data", mimeType: "audio/wav" },
       });
 
       expect(response.statusCode).toBe(503);
@@ -238,7 +238,7 @@ describe("speech routes", () => {
       const failingClient = new DeepgramClient({
         apiKey: "test-key",
         ttsModel: "aura-2-thalia-en",
-        sttModel: "nova-3"
+        sttModel: "nova-3",
       });
 
       vi.spyOn(failingClient, "speechToText").mockRejectedValue(
@@ -250,7 +250,7 @@ describe("speech routes", () => {
       const response = await failingApp.inject({
         method: "POST",
         url: "/stt",
-        payload: { audioBase64: "base64data", mimeType: "audio/wav" }
+        payload: { audioBase64: "base64data", mimeType: "audio/wav" },
       });
 
       expect(response.statusCode).toBe(502);

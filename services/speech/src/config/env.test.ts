@@ -9,7 +9,7 @@ describe("env config validation", () => {
       BODY_LIMIT_MB: z.coerce.number().int().min(1).max(200).default(50),
       DEEPGRAM_API_KEY: z.string().optional(),
       DEEPGRAM_TTS_MODEL: z.string().default("aura-2-thalia-en"),
-      DEEPGRAM_STT_MODEL: z.string().default("nova-3")
+      DEEPGRAM_STT_MODEL: z.string().default("nova-3"),
     });
 
     const result = schema.safeParse({
@@ -18,7 +18,7 @@ describe("env config validation", () => {
       BODY_LIMIT_MB: "50",
       DEEPGRAM_API_KEY: "test-key",
       DEEPGRAM_TTS_MODEL: "aura-2-thalia-en",
-      DEEPGRAM_STT_MODEL: "nova-3"
+      DEEPGRAM_STT_MODEL: "nova-3",
     });
 
     expect(result.success).toBe(true);
@@ -31,7 +31,7 @@ describe("env config validation", () => {
 
   it("rejects invalid NODE_ENV", () => {
     const schema = z.object({
-      NODE_ENV: z.enum(["development", "test", "production"]).default("development")
+      NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     });
 
     const result = schema.safeParse({ NODE_ENV: "invalid" });
@@ -43,7 +43,7 @@ describe("env config validation", () => {
       NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
       PORT: z.coerce.number().int().positive().default(4001),
       DEEPGRAM_TTS_MODEL: z.string().default("aura-2-thalia-en"),
-      DEEPGRAM_STT_MODEL: z.string().default("nova-3")
+      DEEPGRAM_STT_MODEL: z.string().default("nova-3"),
     });
 
     const result = schema.safeParse({});
@@ -58,7 +58,7 @@ describe("env config validation", () => {
 
   it("allows optional DEEPGRAM_API_KEY", () => {
     const schema = z.object({
-      DEEPGRAM_API_KEY: z.string().optional()
+      DEEPGRAM_API_KEY: z.string().optional(),
     });
 
     const result = schema.safeParse({});

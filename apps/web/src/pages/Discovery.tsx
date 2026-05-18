@@ -76,7 +76,7 @@ export default function DiscoveryPage({
   onOpenLiked,
   onOpenSessions,
   onOpenSettings,
-  onLogout
+  onLogout,
 }: DiscoveryPageProps) {
   const categories = useMemo(() => {
     const found = new Set<string>();
@@ -86,9 +86,7 @@ export default function DiscoveryPage({
     return [
       "All",
       ...defaultCategories.filter((category) => category !== "All"),
-      ...Array.from(found).filter(
-        (category) => !defaultCategories.includes(category)
-      )
+      ...Array.from(found).filter((category) => !defaultCategories.includes(category)),
     ];
   }, [templates]);
 
@@ -121,7 +119,7 @@ export default function DiscoveryPage({
               display: "flex",
               alignItems: "flex-end",
               justifyContent: "space-between",
-              gap: 24
+              gap: 24,
             }}
           >
             <div>
@@ -129,12 +127,10 @@ export default function DiscoveryPage({
                 Discover · {templates.length} templates
               </div>
               <h1 className="h-display" style={{ fontSize: 32, fontWeight: 500 }}>
-                Pick a rubric.{" "}
-                <span style={{ color: "var(--acc-deep)" }}>Practice out loud.</span>
+                Pick a rubric. <span style={{ color: "var(--acc-deep)" }}>Practice out loud.</span>
               </h1>
               <div className="body-text" style={{ maxWidth: 520, marginTop: 8 }}>
-                The AI runs adaptive interviews and decides to continue or finish
-                after each answer.
+                The AI runs adaptive interviews and decides to continue or finish after each answer.
               </div>
             </div>
             <Button kind="accent" icon="plus" size="lg" onClick={onCreateTemplate}>
@@ -174,7 +170,7 @@ export default function DiscoveryPage({
                 gap: 18,
                 alignItems: "center",
                 overflow: "hidden",
-                position: "relative"
+                position: "relative",
               }}
             >
               <div
@@ -183,7 +179,7 @@ export default function DiscoveryPage({
                   flexDirection: "column",
                   gap: 8,
                   position: "relative",
-                  zIndex: 1
+                  zIndex: 1,
                 }}
               >
                 <span className="eyebrow" style={{ color: "var(--acc)" }}>
@@ -203,11 +199,7 @@ export default function DiscoveryPage({
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, zIndex: 1 }}>
-                <Button
-                  kind="accent"
-                  icon="play"
-                  onClick={() => onStartTemplate(featured.id)}
-                >
+                <Button kind="accent" icon="play" onClick={() => onStartTemplate(featured.id)}>
                   Start
                 </Button>
                 <Button kind="ghost" icon="book" onClick={() => onOpenTemplate(featured.id)}>
@@ -226,7 +218,7 @@ export default function DiscoveryPage({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "flex-end",
-                  paddingRight: 20
+                  paddingRight: 20,
                 }}
               >
                 <Wave bars={50} max={120} seed={9} />
@@ -257,7 +249,7 @@ export default function DiscoveryPage({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 4,
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
                 onClick={onRetry}
                 type="button"
@@ -280,7 +272,7 @@ export default function DiscoveryPage({
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 14
+              gap: 14,
             }}
           >
             {templates.map((template) => {
@@ -295,12 +287,12 @@ export default function DiscoveryPage({
                     title: template.title,
                     author: {
                       name: template.author?.displayName ?? "Unknown",
-                      avatarTone: initialsTone(template.author?.displayName ?? template.id)
+                      avatarTone: initialsTone(template.author?.displayName ?? template.id),
                     },
                     category: template.category,
                     likeCount: likes,
                     questionRange: [3, 12],
-                    isLiked: liked
+                    isLiked: liked,
                   }}
                   onLike={() => {
                     void onToggleLike(template.id, liked);

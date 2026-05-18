@@ -7,7 +7,7 @@ import {
   useNavigate,
   useParams,
   useSearchParams,
-  type NavigateFunction
+  type NavigateFunction,
 } from "react-router-dom";
 import { createApiClient, HttpError } from "./api";
 import type { Session, SessionTurn, Template, TtsPayload, User } from "./types";
@@ -114,7 +114,7 @@ export default function App() {
   const [likedTemplateIds, setLikedTemplateIds] = useState<Set<string>>(new Set());
   const [sidebarCounts, setSidebarCounts] = useState({
     myTemplates: 0,
-    likedTemplates: 0
+    likedTemplates: 0,
   });
   const [sessionCount, setSessionCount] = useState(0);
   const [questionAudioBySessionTurn, setQuestionAudioBySessionTurn] = useState<
@@ -125,7 +125,7 @@ export default function App() {
     () => ({
       myTemplates: sidebarCounts.myTemplates,
       likedTemplates: sidebarCounts.likedTemplates,
-      sessions: sessionCount
+      sessions: sessionCount,
     }),
     [sessionCount, sidebarCounts]
   );
@@ -172,12 +172,12 @@ export default function App() {
       try {
         const [profile, sessions] = await Promise.all([
           api.get<ProfileApiResponse>(`/users/${viewerId}/profile`),
-          api.get<SessionsResponse>("/sessions?limit=1")
+          api.get<SessionsResponse>("/sessions?limit=1"),
         ]);
         setLikedIdsIfChanged(profile.likedTemplates.map((template) => template.id));
         setSidebarCountsIfChanged({
           myTemplates: profile.templates.length,
-          likedTemplates: profile.likedTemplates.length
+          likedTemplates: profile.likedTemplates.length,
         });
         setSessionCount(sessions.totalCount);
       } catch {
@@ -272,8 +272,8 @@ export default function App() {
             ...previous,
             [started.session.id]: {
               ...(previous[started.session.id] ?? {}),
-              1: firstQuestionAudio
-            }
+              1: firstQuestionAudio,
+            },
           }));
         }
         navigate(`/sessions/${started.session.id}`);
@@ -293,7 +293,7 @@ export default function App() {
       onOpenLiked: () => navigate("/liked"),
       onOpenSessions: () => navigate("/sessions"),
       onOpenSettings: () => navigate("/settings"),
-      onLogout: logout
+      onLogout: logout,
     }),
     [logout, user]
   );
@@ -307,7 +307,7 @@ export default function App() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 8
+            gap: 8,
           }}
         >
           <div className="h3" style={{ fontWeight: 500 }}>
@@ -421,8 +421,8 @@ export default function App() {
                 return {
                   ...template,
                   _count: {
-                    likes: Math.max(0, currentLikes + (currentlyLiked ? -1 : 1))
-                  }
+                    likes: Math.max(0, currentLikes + (currentlyLiked ? -1 : 1)),
+                  },
                 };
               })
             );
@@ -493,8 +493,8 @@ export default function App() {
                         likes: Math.max(
                           0,
                           (template._count?.likes ?? 0) + (currentlyLiked ? -1 : 1)
-                        )
-                      }
+                        ),
+                      },
                     }
                   : template
               )
@@ -532,7 +532,7 @@ export default function App() {
         setLikedIdsIfChanged(profile.likedTemplates.map((template) => template.id));
         setSidebarCountsIfChanged({
           myTemplates: profile.templates.length,
-          likedTemplates: profile.likedTemplates.length
+          likedTemplates: profile.likedTemplates.length,
         });
       } catch (loadError) {
         setError(parseError(loadError));
@@ -674,7 +674,9 @@ export default function App() {
           setAiGenerating(true);
           setAiError(null);
           try {
-            const generated = await api.post<GenerateTemplateResponse>("/templates/generate", { prompt });
+            const generated = await api.post<GenerateTemplateResponse>("/templates/generate", {
+              prompt,
+            });
             return generated;
           } catch (generateError) {
             setAiError(parseError(generateError));
@@ -765,8 +767,8 @@ export default function App() {
               return {
                 ...previous,
                 _count: {
-                  likes: Math.max(0, currentLikes + (isLiked ? -1 : 1))
-                }
+                  likes: Math.max(0, currentLikes + (isLiked ? -1 : 1)),
+                },
               };
             });
           } catch (toggleError) {
@@ -852,14 +854,14 @@ export default function App() {
                 return {
                   ...template,
                   _count: {
-                    likes: Math.max(0, likes + (currentlyLiked ? -1 : 1))
-                  }
+                    likes: Math.max(0, likes + (currentlyLiked ? -1 : 1)),
+                  },
                 };
               };
               return {
                 ...previous,
                 templates: previous.templates.map(updateTemplate),
-                likedTemplates: previous.likedTemplates.map(updateTemplate)
+                likedTemplates: previous.likedTemplates.map(updateTemplate),
               };
             });
           } catch (toggleError) {
@@ -882,9 +884,9 @@ export default function App() {
                         ...previous.user,
                         _count: {
                           ...previous.user._count,
-                          followers: Math.max(0, previous.user._count.followers - 1)
-                        }
-                      }
+                          followers: Math.max(0, previous.user._count.followers - 1),
+                        },
+                      },
                     }
                   : previous
               );
@@ -899,9 +901,9 @@ export default function App() {
                         ...previous.user,
                         _count: {
                           ...previous.user._count,
-                          followers: previous.user._count.followers + 1
-                        }
-                      }
+                          followers: previous.user._count.followers + 1,
+                        },
+                      },
                     }
                   : previous
               );
@@ -982,8 +984,8 @@ export default function App() {
               ...previous,
               [sessionId]: {
                 ...(previous[sessionId] ?? {}),
-                [response.turnIndex]: response.audio
-              }
+                [response.turnIndex]: response.audio,
+              },
             }));
             return response.audio;
           } catch {
@@ -1028,8 +1030,8 @@ export default function App() {
                 ...previous,
                 [sessionId]: {
                   ...(previous[sessionId] ?? {}),
-                  [nextTurn.turnIndex]: nextQuestionAudio
-                }
+                  [nextTurn.turnIndex]: nextQuestionAudio,
+                },
               }));
             }
           } catch (submitError) {

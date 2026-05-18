@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+*.log
+package-lock.json
+.env
+.env.local
+.DS_Store
+.turbo
+.vite
+apps/web/node_modules
+services/api/node_modules
+services/speech/node_modules
+packages/shared/node_modules
+services/api/prisma/migrations

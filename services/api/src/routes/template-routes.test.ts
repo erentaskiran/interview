@@ -1,5 +1,11 @@
 import { describe, expect, it, beforeAll, afterAll, beforeEach } from "vitest";
-import { buildTestApp, cleanDatabase, createTestUser, createTestTemplate, prisma } from "../test/helpers.js";
+import {
+  buildTestApp,
+  cleanDatabase,
+  createTestUser,
+  createTestTemplate,
+  prisma,
+} from "../test/helpers.js";
 
 describe("template routes", () => {
   let app: Awaited<ReturnType<typeof buildTestApp>>;
@@ -20,7 +26,7 @@ describe("template routes", () => {
     const result = await createTestUser(app, {
       email: "template@example.com",
       displayName: "Template User",
-      password: "password123"
+      password: "password123",
     });
     authToken = result.token;
     userId = result.user.id;
@@ -35,9 +41,10 @@ describe("template routes", () => {
         payload: {
           title: "New Template",
           category: "System Design",
-          description: "A detailed description for testing purposes that is definitely long enough.",
-          systemInstruction: "You are an expert system design interviewer."
-        }
+          description:
+            "A detailed description for testing purposes that is definitely long enough.",
+          systemInstruction: "You are an expert system design interviewer.",
+        },
       });
 
       expect(response.statusCode).toBe(201);
@@ -56,9 +63,10 @@ describe("template routes", () => {
         payload: {
           title: "Template",
           category: "Engineering",
-          description: "A detailed description for testing purposes that is definitely long enough.",
-          systemInstruction: "Ask questions."
-        }
+          description:
+            "A detailed description for testing purposes that is definitely long enough.",
+          systemInstruction: "Ask questions.",
+        },
       });
 
       expect(response.statusCode).toBe(201);
@@ -75,8 +83,8 @@ describe("template routes", () => {
           title: "AB",
           category: "E",
           description: "short",
-          systemInstruction: "short"
-        }
+          systemInstruction: "short",
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -89,9 +97,10 @@ describe("template routes", () => {
         payload: {
           title: "Template",
           category: "Engineering",
-          description: "A detailed description for testing purposes that is definitely long enough.",
-          systemInstruction: "Ask questions."
-        }
+          description:
+            "A detailed description for testing purposes that is definitely long enough.",
+          systemInstruction: "Ask questions.",
+        },
       });
 
       expect(response.statusCode).toBe(401);
@@ -105,7 +114,7 @@ describe("template routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/templates"
+        url: "/templates",
       });
 
       expect(response.statusCode).toBe(200);
@@ -116,12 +125,15 @@ describe("template routes", () => {
     });
 
     it("filters by category", async () => {
-      await createTestTemplate(app, authToken, { title: "Frontend Interview", category: "Frontend" });
+      await createTestTemplate(app, authToken, {
+        title: "Frontend Interview",
+        category: "Frontend",
+      });
       await createTestTemplate(app, authToken, { title: "Backend Interview", category: "Backend" });
 
       const response = await app.inject({
         method: "GET",
-        url: "/templates?category=Frontend"
+        url: "/templates?category=Frontend",
       });
 
       expect(response.statusCode).toBe(200);
@@ -136,7 +148,7 @@ describe("template routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/templates?q=React"
+        url: "/templates?q=React",
       });
 
       expect(response.statusCode).toBe(200);
@@ -152,7 +164,7 @@ describe("template routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/templates/${template.id}`
+        url: `/templates/${template.id}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -163,7 +175,7 @@ describe("template routes", () => {
     it("returns 404 for non-existent template", async () => {
       const response = await app.inject({
         method: "GET",
-        url: "/templates/non-existent-id"
+        url: "/templates/non-existent-id",
       });
 
       expect(response.statusCode).toBe(404);
@@ -177,7 +189,7 @@ describe("template routes", () => {
       const response = await app.inject({
         method: "POST",
         url: `/templates/${template.id}/like`,
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(201);
@@ -191,13 +203,13 @@ describe("template routes", () => {
       await app.inject({
         method: "POST",
         url: `/templates/${template.id}/like`,
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       const response = await app.inject({
         method: "POST",
         url: `/templates/${template.id}/like`,
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -209,7 +221,7 @@ describe("template routes", () => {
       const response = await app.inject({
         method: "POST",
         url: "/templates/non-existent-id/like",
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -223,13 +235,13 @@ describe("template routes", () => {
       await app.inject({
         method: "POST",
         url: `/templates/${template.id}/like`,
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       const response = await app.inject({
         method: "DELETE",
         url: `/templates/${template.id}/like`,
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -243,7 +255,7 @@ describe("template routes", () => {
       const response = await app.inject({
         method: "DELETE",
         url: `/templates/${template.id}/like`,
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -258,7 +270,7 @@ describe("template routes", () => {
         method: "POST",
         url: "/templates/generate",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { prompt: "Create a system design interview template" }
+        payload: { prompt: "Create a system design interview template" },
       });
 
       expect(response.statusCode).toBe(200);
@@ -273,7 +285,7 @@ describe("template routes", () => {
         method: "POST",
         url: "/templates/generate",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { prompt: "hi" }
+        payload: { prompt: "hi" },
       });
 
       expect(response.statusCode).toBe(400);

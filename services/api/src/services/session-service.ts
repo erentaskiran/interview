@@ -4,7 +4,7 @@ import type {
   InterviewTemplate,
   InterviewTurn,
   Prisma,
-  PrismaClient
+  PrismaClient,
 } from "@prisma/client";
 import type { AiInterviewProvider } from "../providers/ai/types.js";
 import type { SpeechServiceClient } from "../clients/speech-service-client.js";
@@ -13,8 +13,7 @@ import { decideAdaptiveTransition } from "./session-decision.js";
 export const MIN_QUESTIONS = 3;
 export const MAX_QUESTIONS = 12;
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const answeredTurns = (turns: InterviewTurn[]) =>
   turns
@@ -23,7 +22,7 @@ const answeredTurns = (turns: InterviewTurn[]) =>
     .map((turn) => ({
       turnIndex: turn.turnIndex,
       questionText: turn.questionText,
-      answerTranscript: turn.answerTranscript ?? ""
+      answerTranscript: turn.answerTranscript ?? "",
     }));
 
 const synthesizeQuestionAudio = async (
@@ -43,7 +42,7 @@ const finalizeSession = async ({
   aiProvider,
   session,
   turns,
-  completionReason
+  completionReason,
 }: {
   prisma: PrismaClient;
   aiProvider: AiInterviewProvider;
@@ -54,7 +53,7 @@ const finalizeSession = async ({
   const contextTurns = answeredTurns(turns);
   const result = await aiProvider.finalizeInterview({
     completionReason,
-    turns: contextTurns
+    turns: contextTurns,
   });
 
   const updated = await prisma.interviewSession.update({
@@ -64,12 +63,12 @@ const finalizeSession = async ({
       completionReason,
       score: result.score,
       feedback: result.feedback as unknown as Prisma.InputJsonValue,
-      completedAt: new Date()
+      completedAt: new Date(),
     },
     include: {
       turns: { orderBy: { turnIndex: "asc" } },
-      template: true
-    }
+      template: true,
+    },
   });
 
   return updated;
@@ -81,8 +80,8 @@ const markSessionFailed = async (prisma: PrismaClient, sessionId: string) => {
     data: {
       status: "failed",
       completionReason: "failed",
-      completedAt: new Date()
-    }
+      completedAt: new Date(),
+    },
   });
 };
 
@@ -91,7 +90,7 @@ export const startAdaptiveSession = async ({
   aiProvider,
   speechClient,
   userId,
-  template
+  template,
 }: {
   prisma: PrismaClient;
   aiProvider: AiInterviewProvider;
@@ -105,14 +104,10 @@ export const startAdaptiveSession = async ({
     templateDescription: template.description,
     systemInstruction: template.systemInstruction,
     minQuestionCount: MIN_QUESTIONS,
-    maxQuestionCount: MAX_QUESTIONS
+    maxQuestionCount: MAX_QUESTIONS,
   });
 
-  const boundedPlannedCount = clamp(
-    plan.plannedQuestionCount,
-    MIN_QUESTIONS,
-    MAX_QUESTIONS
-  );
+  const boundedPlannedCount = clamp(plan.plannedQuestionCount, MIN_QUESTIONS, MAX_QUESTIONS);
 
   const ttsPayload = await synthesizeQuestionAudio(
     speechClient,
@@ -134,14 +129,14 @@ export const startAdaptiveSession = async ({
         create: {
           turnIndex: 1,
           questionText: plan.firstQuestion,
-          questionAudioRef: ttsPayload ? "inline-generated" : null
-        }
-      }
+          questionAudioRef: ttsPayload ? "inline-generated" : null,
+        },
+      },
     },
     include: {
       turns: { orderBy: { turnIndex: "asc" } },
-      template: true
-    }
+      template: true,
+    },
   });
 
   return { session, firstQuestionAudio: ttsPayload };
@@ -156,7 +151,7 @@ export const answerAdaptiveSession = async ({
   answerTranscript,
   answerAudioBase64,
   answerAudioMimeType,
-  answerAudioRef
+  answerAudioRef,
 }: {
   prisma: PrismaClient;
   aiProvider: AiInterviewProvider;
@@ -172,8 +167,8 @@ export const answerAdaptiveSession = async ({
     where: { id: sessionId, userId },
     include: {
       turns: { orderBy: { turnIndex: "asc" } },
-      template: true
-    }
+      template: true,
+    },
   });
 
   if (!session) {
@@ -200,13 +195,13 @@ export const answerAdaptiveSession = async ({
     where: { id: pendingTurn.id },
     data: {
       answerTranscript: transcript,
-      answerAudioRef: answerAudioRef ?? null
-    }
+      answerAudioRef: answerAudioRef ?? null,
+    },
   });
 
   const refreshedTurns = await prisma.interviewTurn.findMany({
     where: { sessionId: session.id },
-    orderBy: { turnIndex: "asc" }
+    orderBy: { turnIndex: "asc" },
   });
 
   const contextTurns = answeredTurns(refreshedTurns);
@@ -220,9 +215,9 @@ export const answerAdaptiveSession = async ({
           aiProvider,
           session,
           turns: refreshedTurns,
-          completionReason: "ai_completed"
+          completionReason: "ai_completed",
         }),
-        transition: "finished_max_guard" as const
+        transition: "finished_max_guard" as const,
       };
     } catch (error) {
       await markSessionFailed(prisma, session.id);
@@ -236,7 +231,7 @@ export const answerAdaptiveSession = async ({
       minQuestionCount: session.minQuestionCount,
       maxQuestionCount: session.maxQuestionCount,
       plannedQuestionCount: session.plannedQuestionCount,
-      turns: contextTurns
+      turns: contextTurns,
     });
   } catch (error) {
     await markSessionFailed(prisma, session.id);
@@ -247,7 +242,7 @@ export const answerAdaptiveSession = async ({
     answeredCount,
     minQuestionCount: session.minQuestionCount,
     maxQuestionCount: session.maxQuestionCount,
-    aiDecision: decision.decision
+    aiDecision: decision.decision,
   });
 
   if (transition === "finish_by_max_guard" || transition === "finish_by_ai") {
@@ -258,12 +253,12 @@ export const answerAdaptiveSession = async ({
           aiProvider,
           session,
           turns: refreshedTurns,
-          completionReason: "ai_completed"
+          completionReason: "ai_completed",
         }),
         transition:
           transition === "finish_by_max_guard"
             ? ("finished_max_guard" as const)
-            : ("finished_by_ai" as const)
+            : ("finished_by_ai" as const),
       };
     } catch (error) {
       await markSessionFailed(prisma, session.id);
@@ -272,8 +267,7 @@ export const answerAdaptiveSession = async ({
   }
 
   const nextQuestion =
-    decision.nextQuestion ??
-    "Can you expand on your previous answer with a concrete example?";
+    decision.nextQuestion ?? "Can you expand on your previous answer with a concrete example?";
 
   const nextQuestionAudio = await synthesizeQuestionAudio(
     speechClient,
@@ -290,9 +284,9 @@ export const answerAdaptiveSession = async ({
       aiDecisionMetadata: {
         reasoning: decision.reasoning,
         forcedContinueByMinGuard:
-          answeredCount < session.minQuestionCount && decision.decision === "finish"
-      } as Prisma.InputJsonValue
-    }
+          answeredCount < session.minQuestionCount && decision.decision === "finish",
+      } as Prisma.InputJsonValue,
+    },
   });
 
   return {
@@ -300,12 +294,12 @@ export const answerAdaptiveSession = async ({
       where: { id: session.id },
       include: {
         turns: { orderBy: { turnIndex: "asc" } },
-        template: true
-      }
+        template: true,
+      },
     }),
     nextTurn,
     nextQuestionAudio,
-    transition: "continued" as const
+    transition: "continued" as const,
   };
 };
 
@@ -313,7 +307,7 @@ export const manualFinishSession = async ({
   prisma,
   aiProvider,
   sessionId,
-  userId
+  userId,
 }: {
   prisma: PrismaClient;
   aiProvider: AiInterviewProvider;
@@ -322,7 +316,7 @@ export const manualFinishSession = async ({
 }) => {
   const session = await prisma.interviewSession.findFirst({
     where: { id: sessionId, userId },
-    include: { turns: { orderBy: { turnIndex: "asc" } }, template: true }
+    include: { turns: { orderBy: { turnIndex: "asc" } }, template: true },
   });
   if (!session) {
     throw new Error("SESSION_NOT_FOUND");
@@ -342,7 +336,7 @@ export const manualFinishSession = async ({
       aiProvider,
       session,
       turns: session.turns,
-      completionReason: "user_stopped"
+      completionReason: "user_stopped",
     });
   } catch (error) {
     await markSessionFailed(prisma, session.id);

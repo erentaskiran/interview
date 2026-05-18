@@ -10,7 +10,7 @@ describe("env config validation", () => {
       DATABASE_URL: z.string().min(1),
       JWT_SECRET: z.string().min(16),
       AI_PROVIDER: z.enum(["mock", "opencode"]).default("mock"),
-      SPEECH_SERVICE_URL: z.string().url().default("http://localhost:4001")
+      SPEECH_SERVICE_URL: z.string().url().default("http://localhost:4001"),
     });
 
     const result = schema.safeParse({
@@ -20,7 +20,7 @@ describe("env config validation", () => {
       DATABASE_URL: "postgresql://localhost/test",
       JWT_SECRET: "test-secret-key-12345",
       AI_PROVIDER: "mock",
-      SPEECH_SERVICE_URL: "http://localhost:4001"
+      SPEECH_SERVICE_URL: "http://localhost:4001",
     });
 
     expect(result.success).toBe(true);
@@ -33,7 +33,7 @@ describe("env config validation", () => {
 
   it("rejects invalid NODE_ENV", () => {
     const schema = z.object({
-      NODE_ENV: z.enum(["development", "test", "production"]).default("development")
+      NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     });
 
     const result = schema.safeParse({ NODE_ENV: "invalid" });
@@ -42,7 +42,7 @@ describe("env config validation", () => {
 
   it("rejects short JWT_SECRET", () => {
     const schema = z.object({
-      JWT_SECRET: z.string().min(16)
+      JWT_SECRET: z.string().min(16),
     });
 
     const result = schema.safeParse({ JWT_SECRET: "short" });
@@ -51,7 +51,7 @@ describe("env config validation", () => {
 
   it("rejects invalid URL", () => {
     const schema = z.object({
-      SPEECH_SERVICE_URL: z.string().url()
+      SPEECH_SERVICE_URL: z.string().url(),
     });
 
     const result = schema.safeParse({ SPEECH_SERVICE_URL: "not-a-url" });
@@ -62,7 +62,7 @@ describe("env config validation", () => {
     const schema = z.object({
       NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
       PORT: z.coerce.number().int().positive().default(4000),
-      AI_PROVIDER: z.enum(["mock", "opencode"]).default("mock")
+      AI_PROVIDER: z.enum(["mock", "opencode"]).default("mock"),
     });
 
     const result = schema.safeParse({});

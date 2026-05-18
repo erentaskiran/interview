@@ -9,6 +9,7 @@
 ## Overview
 
 AInterview is a web app where users:
+
 1. Browse / create **interview templates** (rubrics + system prompts).
 2. Run **voice-first adaptive interviews** — the AI decides between 3–12 questions, stops when it has enough signal, and the user can also end early.
 3. Get a **scored result** with strengths, weaknesses, and follow-up suggestions.
@@ -19,7 +20,7 @@ This handoff covers **the front-end MVP** — design tokens, six core components
 
 ## About the design files
 
-> ⚠️ **The HTML files in this bundle are *design references*, not production code.**
+> ⚠️ **The HTML files in this bundle are _design references_, not production code.**
 >
 > They are static prototypes built with React + Babel + plain CSS so they could render in a browser preview. **They are intended to be re-implemented in the target codebase** (`apps/web`, React + Vite + TypeScript) using your established patterns — your component library, your styling solution, your routing.
 >
@@ -40,15 +41,15 @@ The two screens with explicit variations (Interview Session and Result) are alte
 
 ## Tech-stack expectations
 
-| Layer | Choice |
-|---|---|
-| Framework | React 18 + Vite + TypeScript |
-| Styling | CSS variables (tokens) + CSS Modules **or** Tailwind preset built from `tokens.css`. Avoid styled-components — tokens are CSS-native. |
-| Fonts | `Geist` + `Geist Mono` via `@fontsource/geist-sans` + `@fontsource/geist-mono` (or Google Fonts link) |
-| Icons | Inline SVG (24×24, 1.6 stroke). The icon set in `ui.jsx` covers everything used. Lucide-react is fine as a drop-in if you prefer. |
-| State | React Query for server data + Zustand or React context for session state. Session screen needs local audio state + WebSocket-ish polling. |
-| Routing | TanStack Router or React Router 6 — protected route wrapper required (see API spec). |
-| Forms | React Hook Form + Zod schemas matching the API. |
+| Layer     | Choice                                                                                                                                    |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework | React 18 + Vite + TypeScript                                                                                                              |
+| Styling   | CSS variables (tokens) + CSS Modules **or** Tailwind preset built from `tokens.css`. Avoid styled-components — tokens are CSS-native.     |
+| Fonts     | `Geist` + `Geist Mono` via `@fontsource/geist-sans` + `@fontsource/geist-mono` (or Google Fonts link)                                     |
+| Icons     | Inline SVG (24×24, 1.6 stroke). The icon set in `ui.jsx` covers everything used. Lucide-react is fine as a drop-in if you prefer.         |
+| State     | React Query for server data + Zustand or React context for session state. Session screen needs local audio state + WebSocket-ish polling. |
+| Routing   | TanStack Router or React Router 6 — protected route wrapper required (see API spec).                                                      |
+| Forms     | React Hook Form + Zod schemas matching the API.                                                                                           |
 
 ---
 
@@ -59,34 +60,35 @@ All tokens live in `styles.css` as CSS custom properties under `:root`. Copy tha
 ### Colors (warm-neutral palette · mustard accent)
 
 ```css
---bg:        oklch(0.975 0.012 78);   /* page cream */
---surface:   oklch(1 0 0);            /* card white */
---surface-2: oklch(0.965 0.013 78);   /* sunken */
---surface-3: oklch(0.945 0.015 78);   /* deeper sunken */
---tint:      oklch(0.955 0.018 78);   /* warm wash */
+--bg: oklch(0.975 0.012 78); /* page cream */
+--surface: oklch(1 0 0); /* card white */
+--surface-2: oklch(0.965 0.013 78); /* sunken */
+--surface-3: oklch(0.945 0.015 78); /* deeper sunken */
+--tint: oklch(0.955 0.018 78); /* warm wash */
 
---ink-900:   oklch(0.22 0.012 60);    /* primary text — warm near-black */
---ink-800:   oklch(0.30 0.012 60);
---ink-700:   oklch(0.42 0.012 60);
---ink-600:   oklch(0.55 0.012 60);
---ink-500:   oklch(0.65 0.012 60);    /* muted */
---ink-400:   oklch(0.78 0.012 70);    /* placeholder */
---ink-300:   oklch(0.88 0.014 75);    /* hairline */
---ink-200:   oklch(0.93 0.014 75);    /* border */
---ink-100:   oklch(0.965 0.012 78);
+--ink-900: oklch(0.22 0.012 60); /* primary text — warm near-black */
+--ink-800: oklch(0.3 0.012 60);
+--ink-700: oklch(0.42 0.012 60);
+--ink-600: oklch(0.55 0.012 60);
+--ink-500: oklch(0.65 0.012 60); /* muted */
+--ink-400: oklch(0.78 0.012 70); /* placeholder */
+--ink-300: oklch(0.88 0.014 75); /* hairline */
+--ink-200: oklch(0.93 0.014 75); /* border */
+--ink-100: oklch(0.965 0.012 78);
 
---acc:       oklch(0.74 0.13 78);     /* mustard — voice flow CTAs only */
---acc-deep:  oklch(0.55 0.12 70);     /* on cream backgrounds */
---acc-soft:  oklch(0.93 0.06 85);     /* wash / focus halo */
+--acc: oklch(0.74 0.13 78); /* mustard — voice flow CTAs only */
+--acc-deep: oklch(0.55 0.12 70); /* on cream backgrounds */
+--acc-soft: oklch(0.93 0.06 85); /* wash / focus halo */
 
---ok:        oklch(0.62 0.11 150);    /* sage green */
---ok-soft:   oklch(0.94 0.05 150);
---warn:      oklch(0.72 0.13 70);
---err:       oklch(0.58 0.16 28);     /* terracotta */
---err-soft:  oklch(0.94 0.05 28);
+--ok: oklch(0.62 0.11 150); /* sage green */
+--ok-soft: oklch(0.94 0.05 150);
+--warn: oklch(0.72 0.13 70);
+--err: oklch(0.58 0.16 28); /* terracotta */
+--err-soft: oklch(0.94 0.05 28);
 ```
 
 **Usage rules:**
+
 - `--acc` (mustard) is **only** for the voice flow — record buttons, "AI completed" chip, score gauge fills above 70. Never for generic CTAs.
 - Generic primary CTAs use `--ink-900` (warm near-black on surface).
 - Recording state inverts to `--ink-900` background — this is the single most important affordance in the product.
@@ -117,11 +119,11 @@ mono     13/18   weight 500   Geist Mono
 ### Shadows
 
 ```css
---shadow-xs:  0 1px 0 rgba(ink, .06);                                /* list rows */
---shadow-sm:  0 1px 2px rgba(ink, .06), 0 1px 0 rgba(ink, .04);      /* cards (default) */
---shadow-md:  0 4px 14px rgba(ink, .07), 0 1px 0 rgba(ink, .04);     /* floating chips */
---shadow-lg:  0 18px 40px rgba(ink, .10), 0 2px 6px rgba(ink, .05);  /* modals */
---shadow-pop: 0 24px 60px rgba(ink, .14);                            /* menus */
+--shadow-xs: 0 1px 0 rgba(ink, 0.06); /* list rows */
+--shadow-sm: 0 1px 2px rgba(ink, 0.06), 0 1px 0 rgba(ink, 0.04); /* cards (default) */
+--shadow-md: 0 4px 14px rgba(ink, 0.07), 0 1px 0 rgba(ink, 0.04); /* floating chips */
+--shadow-lg: 0 18px 40px rgba(ink, 0.1), 0 2px 6px rgba(ink, 0.05); /* modals */
+--shadow-pop: 0 24px 60px rgba(ink, 0.14); /* menus */
 ```
 
 ---
@@ -134,8 +136,8 @@ The spec lists six components. Build each as a typed React component in `src/com
 
 ```ts
 type ButtonProps = {
-  kind?: 'primary' | 'accent' | 'ghost' | 'quiet' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+  kind?: "primary" | "accent" | "ghost" | "quiet" | "danger";
+  size?: "sm" | "md" | "lg";
   icon?: IconName;
   iconRight?: IconName;
   block?: boolean;
@@ -163,10 +165,10 @@ type InputProps = {
   value?: string;
   onChange?: (v: string) => void;
   placeholder?: string;
-  icon?: IconName;      // leading
-  suffix?: ReactNode;   // trailing text/badge
-  size?: 'md' | 'lg';   // 38px / 44px
-  type?: 'text' | 'email' | 'password';
+  icon?: IconName; // leading
+  suffix?: ReactNode; // trailing text/badge
+  size?: "md" | "lg"; // 38px / 44px
+  type?: "text" | "email" | "password";
   error?: boolean;
   disabled?: boolean;
 };
@@ -174,8 +176,8 @@ type InputProps = {
 type FieldProps = {
   label?: string;
   hint?: string;
-  error?: boolean;     // colors hint red
-  optional?: boolean;  // shows "Optional" in label row
+  error?: boolean; // colors hint red
+  optional?: boolean; // shows "Optional" in label row
   children: ReactNode;
 };
 ```
@@ -193,10 +195,10 @@ type TemplateCardProps = {
   template: {
     id: string;
     title: string;
-    author: { name: string; avatarTone?: 'a'|'b'|'c'|'d'|'e' };
-    category: 'Engineering'|'Product'|'Design'|'Founder'|'Data'|'Sales';
+    author: { name: string; avatarTone?: "a" | "b" | "c" | "d" | "e" };
+    category: "Engineering" | "Product" | "Design" | "Founder" | "Data" | "Sales";
     likeCount: number;
-    questionRange: [number, number];   // e.g. [6, 8]
+    questionRange: [number, number]; // e.g. [6, 8]
     isLiked?: boolean;
     trending?: boolean;
   };
@@ -212,15 +214,15 @@ type TemplateCardProps = {
 - Bottom row separated by 1px `--ink-100`: question range in mono left, heart + like count right (filled `--err` when liked).
 - Clickable whole card; hover lifts to `--shadow-sm`.
 
-### 4. `<AudioRecorder />`  ⭐ critical component
+### 4. `<AudioRecorder />` ⭐ critical component
 
 ```ts
-type AudioRecorderState = 'idle' | 'recording' | 'review' | 'processing';
+type AudioRecorderState = "idle" | "recording" | "review" | "processing";
 
 type AudioRecorderProps = {
   state: AudioRecorderState;
-  durationSec?: number;            // current recording length
-  maxSec?: number;                 // default 180 (3 min)
+  durationSec?: number; // current recording length
+  maxSec?: number; // default 180 (3 min)
   onStart: () => void;
   onStop: () => void;
   onSubmit: () => void;
@@ -232,12 +234,12 @@ type AudioRecorderProps = {
 
 Four visual states (see `components.jsx → AudioRecorder`):
 
-| State | Behavior |
-|---|---|
-| `idle` | Cream/white card. Single large accent button: "Record answer" with mic icon. |
-| `recording` | **Card inverts to `--ink-900` background**, white text. Pulsing red dot + "Recording · 0:42" in mono uppercase. Live waveform bars in `--acc`. Big danger button "Stop". |
-| `processing` | Cream card. Dot row pulsing + "Sending to speech service…" + elapsed seconds. |
-| `review` | Cream card. Ghost buttons "Play back" + "Re-record" + primary "Submit". |
+| State        | Behavior                                                                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `idle`       | Cream/white card. Single large accent button: "Record answer" with mic icon.                                                                                             |
+| `recording`  | **Card inverts to `--ink-900` background**, white text. Pulsing red dot + "Recording · 0:42" in mono uppercase. Live waveform bars in `--acc`. Big danger button "Stop". |
+| `processing` | Cream card. Dot row pulsing + "Sending to speech service…" + elapsed seconds.                                                                                            |
+| `review`     | Cream card. Ghost buttons "Play back" + "Re-record" + primary "Submit".                                                                                                  |
 
 Wire to MediaRecorder API. Upload to `POST /sessions/:id/answer` as multipart audio. While `processing`, disable submit. On STT error, show inline error banner above the recorder (don't replace it) so the audio isn't lost.
 
@@ -245,10 +247,10 @@ Wire to MediaRecorder API. Upload to `POST /sessions/:id/answer` as multipart au
 
 ```ts
 type SessionProgressProps = {
-  current: number;        // 1-indexed
-  plannedTotal: number;   // AI's target inside [min, max]
-  min?: number;           // default 3
-  max?: number;           // default 12
+  current: number; // 1-indexed
+  plannedTotal: number; // AI's target inside [min, max]
+  min?: number; // default 3
+  max?: number; // default 12
 };
 ```
 
@@ -258,13 +260,13 @@ Renders `max` small dots in a row. Filled dots = answered, ring-style dot = curr
 
 ```ts
 type ResultSummaryProps = {
-  score: number;                                          // 0–100
-  completionReason: 'ai_completed' | 'user_stopped' | 'failed';
-  headline: string;                                       // AI-generated
-  strengths: string[];                                    // 2–4 items
-  improvements: string[];                                 // 2–4 items
+  score: number; // 0–100
+  completionReason: "ai_completed" | "user_stopped" | "failed";
+  headline: string; // AI-generated
+  strengths: string[]; // 2–4 items
+  improvements: string[]; // 2–4 items
   questionCount: number;
-  duration: string;                                       // "11m 32s"
+  duration: string; // "11m 32s"
   onRetry: () => void;
   onTranscript: () => void;
   onExport: () => void;
@@ -294,6 +296,7 @@ Auth state: stored in `localStorage` as `ainterview_jwt`. Protected route wrappe
 ### 2 · Discovery (`/discover`)
 
 Sidebar + topbar shell. Main:
+
 1. **Hero** — eyebrow "Discover · 1,284 templates", display headline with one mustard accent word, body sub, "New template" accent button right.
 2. **Category chips** — All / Engineering / Product / Design / Founder / Data / Sales. Active = `chip--ink`. Right side: Filter + Sort buttons.
 3. **Featured banner** — `--ink-900` card, editor's pick, faded waveform decoration right, "Start" accent button.
@@ -367,15 +370,18 @@ Self-profile: own avatar/name shown; Follow button replaced with "Edit profile".
 ## States
 
 ### Loading
+
 - **Lists** → skeleton cards matching real card structure. Never spinners. Shimmer animation 1.6s.
 - **AI thinking** → inline dot-row "AI is choosing the next question…" with current Q counter.
 - **STT processing** → inline waveform bar + "Transcribing your answer with Deepgram" + elapsed.
 
 ### Empty
+
 - **No sessions / no templates** → 56px iconographic placeholder, h3, body explaining what's possible, primary + ghost action buttons.
 - **No search results** → inline flush card with verb-led message + "Create" shortcut.
 
 ### Error
+
 - **Inline (recoverable)** → `--err-soft` banner card with bolt icon, message, Retry button. Don't destroy user input.
 - **Page (unrecoverable)** → centered icon + h3 + body + mono error code (`err_score_bad_response · sess_8k42p`) + primary action.
 - **Form** → field-level red border + red hint underneath.
@@ -402,14 +408,15 @@ Self-profile: own avatar/name shown; Follow button replaced with "Edit profile".
 
 ## API contract reminders (from your spec)
 
-| Endpoint | Purpose | Notes for FE |
-|---|---|---|
-| `POST /sessions` | Create adaptive session from template | Response: `{ sessionId, rubric, plannedQuestionCount, firstQuestion: { id, text, audioUrl } }` |
-| `POST /sessions/:id/answer` | Submit audio answer | multipart `audio`. Response: `{ status: 'continue', nextQuestion } \| { status: 'finished', result }` |
-| `POST /sessions/:id/finish` | User ends early | Allowed only after `turnCount >= 1`. Returns full `result`. |
-| `GET  /sessions/:id` | Resume / view | Returns turns, rubric, completionReason, result if any. |
+| Endpoint                    | Purpose                               | Notes for FE                                                                                          |
+| --------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `POST /sessions`            | Create adaptive session from template | Response: `{ sessionId, rubric, plannedQuestionCount, firstQuestion: { id, text, audioUrl } }`        |
+| `POST /sessions/:id/answer` | Submit audio answer                   | multipart `audio`. Response: `{ status: 'continue', nextQuestion } \| { status: 'finished', result }` |
+| `POST /sessions/:id/finish` | User ends early                       | Allowed only after `turnCount >= 1`. Returns full `result`.                                           |
+| `GET  /sessions/:id`        | Resume / view                         | Returns turns, rubric, completionReason, result if any.                                               |
 
 `completionReason` drives the Result variant shown:
+
 - `ai_completed` → Result A (default)
 - `user_stopped` → Result C
 - `failed` → States/Error page
@@ -435,6 +442,7 @@ design_handoff_ainterview_mvp/
 ```
 
 **Reading order for the implementing dev:**
+
 1. Open `AInterview design.html` in the browser to see everything.
 2. Read this README end-to-end.
 3. Skim `styles.css` for tokens.

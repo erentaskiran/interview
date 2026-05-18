@@ -38,9 +38,7 @@ export function Wordmark({ size = 18, mono = false, color }: WordmarkProps) {
       </span>
       <span
         style={{
-          fontFamily: mono
-            ? "var(--f-mono)"
-            : "var(--f-sans)",
+          fontFamily: mono ? "var(--f-mono)" : "var(--f-sans)",
           fontSize: size,
           fontWeight: 600,
           letterSpacing: "-0.025em",

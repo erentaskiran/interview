@@ -1,5 +1,11 @@
 import { describe, expect, it, beforeAll, afterAll, beforeEach } from "vitest";
-import { buildTestApp, cleanDatabase, createTestUser, createTestTemplate, prisma } from "../test/helpers.js";
+import {
+  buildTestApp,
+  cleanDatabase,
+  createTestUser,
+  createTestTemplate,
+  prisma,
+} from "../test/helpers.js";
 
 describe("session routes", () => {
   let app: Awaited<ReturnType<typeof buildTestApp>>;
@@ -21,14 +27,14 @@ describe("session routes", () => {
     const userResult = await createTestUser(app, {
       email: "session@example.com",
       displayName: "Session User",
-      password: "password123"
+      password: "password123",
     });
     authToken = userResult.token;
     userId = userResult.user.id;
 
     const templateResult = await createTestTemplate(app, authToken, {
       title: "Interview Template",
-      category: "Engineering"
+      category: "Engineering",
     });
     templateId = templateResult.id;
   });
@@ -39,7 +45,7 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
 
       expect(response.statusCode).toBe(201);
@@ -57,7 +63,7 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId: "non-existent-id" }
+        payload: { templateId: "non-existent-id" },
       });
 
       expect(response.statusCode).toBe(404);
@@ -68,7 +74,7 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: {}
+        payload: {},
       });
 
       expect(response.statusCode).toBe(400);
@@ -78,7 +84,7 @@ describe("session routes", () => {
       const response = await app.inject({
         method: "POST",
         url: "/sessions",
-        payload: { templateId }
+        payload: { templateId },
       });
 
       expect(response.statusCode).toBe(401);
@@ -91,13 +97,13 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
 
       const response = await app.inject({
         method: "GET",
         url: "/sessions",
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -112,13 +118,13 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
 
       const response = await app.inject({
         method: "GET",
         url: "/sessions?status=completed",
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -129,7 +135,7 @@ describe("session routes", () => {
     it("returns 401 without token", async () => {
       const response = await app.inject({
         method: "GET",
-        url: "/sessions"
+        url: "/sessions",
       });
 
       expect(response.statusCode).toBe(401);
@@ -142,14 +148,14 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
       const { session } = JSON.parse(createResponse.body);
 
       const response = await app.inject({
         method: "GET",
         url: `/sessions/${session.id}`,
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -162,7 +168,7 @@ describe("session routes", () => {
       const response = await app.inject({
         method: "GET",
         url: "/sessions/non-existent-id",
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -171,7 +177,7 @@ describe("session routes", () => {
     it("returns 401 without token", async () => {
       const response = await app.inject({
         method: "GET",
-        url: "/sessions/some-id"
+        url: "/sessions/some-id",
       });
 
       expect(response.statusCode).toBe(401);
@@ -184,7 +190,7 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
       const { session } = JSON.parse(createResponse.body);
 
@@ -192,7 +198,7 @@ describe("session routes", () => {
         method: "POST",
         url: `/sessions/${session.id}/answer`,
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { answerTranscript: "This is my answer." }
+        payload: { answerTranscript: "This is my answer." },
       });
 
       expect(response.statusCode).toBe(200);
@@ -207,7 +213,7 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
       let { session } = JSON.parse(createResponse.body);
 
@@ -216,7 +222,7 @@ describe("session routes", () => {
           method: "POST",
           url: `/sessions/${session.id}/answer`,
           headers: { authorization: `Bearer ${authToken}` },
-          payload: { answerTranscript: `Answer ${i + 1}` }
+          payload: { answerTranscript: `Answer ${i + 1}` },
         });
         const body = JSON.parse(answerResponse.body);
         if (body.session) {
@@ -232,7 +238,7 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
       let { session } = JSON.parse(createResponse.body);
 
@@ -241,7 +247,7 @@ describe("session routes", () => {
           method: "POST",
           url: `/sessions/${session.id}/answer`,
           headers: { authorization: `Bearer ${authToken}` },
-          payload: { answerTranscript: `Answer ${i + 1}` }
+          payload: { answerTranscript: `Answer ${i + 1}` },
         });
         const body = JSON.parse(res.body);
         if (body.session) session = body.session;
@@ -251,7 +257,7 @@ describe("session routes", () => {
         method: "POST",
         url: `/sessions/${session.id}/answer`,
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { answerTranscript: "Extra answer" }
+        payload: { answerTranscript: "Extra answer" },
       });
 
       expect(response.statusCode).toBe(409);
@@ -262,7 +268,7 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
       const { session } = JSON.parse(createResponse.body);
 
@@ -270,7 +276,7 @@ describe("session routes", () => {
         method: "POST",
         url: `/sessions/${session.id}/answer`,
         headers: { authorization: `Bearer ${authToken}` },
-        payload: {}
+        payload: {},
       });
 
       expect(response.statusCode).toBe(400);
@@ -281,7 +287,7 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions/non-existent-id/answer",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { answerTranscript: "Answer" }
+        payload: { answerTranscript: "Answer" },
       });
 
       expect(response.statusCode).toBe(404);
@@ -294,7 +300,7 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
       const { session } = JSON.parse(createResponse.body);
 
@@ -302,13 +308,13 @@ describe("session routes", () => {
         method: "POST",
         url: `/sessions/${session.id}/answer`,
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { answerTranscript: "My answer." }
+        payload: { answerTranscript: "My answer." },
       });
 
       const response = await app.inject({
         method: "POST",
         url: `/sessions/${session.id}/finish`,
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -323,14 +329,14 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
       const { session } = JSON.parse(createResponse.body);
 
       const response = await app.inject({
         method: "POST",
         url: `/sessions/${session.id}/finish`,
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -342,7 +348,7 @@ describe("session routes", () => {
       const response = await app.inject({
         method: "POST",
         url: "/sessions/non-existent-id/finish",
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -351,7 +357,7 @@ describe("session routes", () => {
     it("returns 401 without token", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/some-id/finish"
+        url: "/sessions/some-id/finish",
       });
 
       expect(response.statusCode).toBe(401);
@@ -364,14 +370,14 @@ describe("session routes", () => {
         method: "POST",
         url: "/sessions",
         headers: { authorization: `Bearer ${authToken}` },
-        payload: { templateId }
+        payload: { templateId },
       });
       const { session } = JSON.parse(createResponse.body);
 
       const response = await app.inject({
         method: "GET",
         url: `/sessions/${session.id}/question-audio`,
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -384,7 +390,7 @@ describe("session routes", () => {
       const response = await app.inject({
         method: "GET",
         url: "/sessions/non-existent-id/question-audio",
-        headers: { authorization: `Bearer ${authToken}` }
+        headers: { authorization: `Bearer ${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -393,7 +399,7 @@ describe("session routes", () => {
     it("returns 401 without token", async () => {
       const response = await app.inject({
         method: "GET",
-        url: "/sessions/some-id/question-audio"
+        url: "/sessions/some-id/question-audio",
       });
 
       expect(response.statusCode).toBe(401);

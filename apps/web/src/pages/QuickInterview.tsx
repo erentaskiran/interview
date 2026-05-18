@@ -59,7 +59,7 @@ export default function QuickInterviewPage({
   onOpenLiked,
   onOpenSessions,
   onOpenSettings,
-  onLogout
+  onLogout,
 }: QuickInterviewPageProps) {
   const quickTemplate = templates[0] ?? null;
 
@@ -87,7 +87,10 @@ export default function QuickInterviewPage({
             </Button>
           }
         />
-        <div className="main main--scroll" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div
+          className="main main--scroll"
+          style={{ display: "flex", flexDirection: "column", gap: 14 }}
+        >
           <div className="card" style={{ padding: 20 }}>
             <div className="h2" style={{ fontWeight: 500, marginBottom: 6 }}>
               Start in one click
@@ -135,12 +138,12 @@ export default function QuickInterviewPage({
                     title: template.title,
                     author: {
                       name: template.author?.displayName ?? "Unknown",
-                      avatarTone: toneByText(template.author?.displayName ?? template.id)
+                      avatarTone: toneByText(template.author?.displayName ?? template.id),
                     },
                     category: template.category,
                     likeCount: template._count?.likes ?? 0,
                     questionRange: [3, 12],
-                    isLiked: liked
+                    isLiked: liked,
                   }}
                   onClick={() => onOpenTemplate(template.id)}
                   onLike={() => {

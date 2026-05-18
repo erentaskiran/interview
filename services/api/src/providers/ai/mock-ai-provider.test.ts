@@ -12,7 +12,7 @@ describe("MockAiProvider", () => {
         templateDescription: "General backend interview",
         systemInstruction: "Ask adaptive questions",
         minQuestionCount: 3,
-        maxQuestionCount: 5
+        maxQuestionCount: 5,
       });
 
       expect(result.plannedQuestionCount).toBeGreaterThanOrEqual(3);
@@ -26,7 +26,7 @@ describe("MockAiProvider", () => {
         templateDescription: "General backend interview",
         systemInstruction: "Ask adaptive questions",
         minQuestionCount: 3,
-        maxQuestionCount: 5
+        maxQuestionCount: 5,
       });
 
       expect(result.firstQuestion.length).toBeGreaterThan(5);
@@ -45,8 +45,8 @@ describe("MockAiProvider", () => {
           { turnIndex: 1, questionText: "Q1", answerTranscript: "A1" },
           { turnIndex: 2, questionText: "Q2", answerTranscript: "A2" },
           { turnIndex: 3, questionText: "Q3", answerTranscript: "A3" },
-          { turnIndex: 4, questionText: "Q4", answerTranscript: "A4" }
-        ]
+          { turnIndex: 4, questionText: "Q4", answerTranscript: "A4" },
+        ],
       });
       expect(result.decision).toBe("finish");
       expect(result.reasoning).toBeTruthy();
@@ -59,8 +59,8 @@ describe("MockAiProvider", () => {
         plannedQuestionCount: 6,
         turns: [
           { turnIndex: 1, questionText: "Q1", answerTranscript: "A1" },
-          { turnIndex: 2, questionText: "Q2", answerTranscript: "A2" }
-        ]
+          { turnIndex: 2, questionText: "Q2", answerTranscript: "A2" },
+        ],
       });
       expect(result.decision).toBe("continue");
       expect(result.nextQuestion).toBeTruthy();
@@ -76,8 +76,8 @@ describe("MockAiProvider", () => {
           { turnIndex: 2, questionText: "Q2", answerTranscript: "A2" },
           { turnIndex: 3, questionText: "Q3", answerTranscript: "A3" },
           { turnIndex: 4, questionText: "Q4", answerTranscript: "A4" },
-          { turnIndex: 5, questionText: "Q5", answerTranscript: "A5" }
-        ]
+          { turnIndex: 5, questionText: "Q5", answerTranscript: "A5" },
+        ],
       });
       expect(result.decision).toBe("finish");
     });
@@ -87,7 +87,7 @@ describe("MockAiProvider", () => {
     it("returns scoring payload for user_stopped", async () => {
       const result = await provider.finalizeInterview({
         completionReason: "user_stopped",
-        turns: [{ turnIndex: 1, questionText: "Q1", answerTranscript: "A1" }]
+        turns: [{ turnIndex: 1, questionText: "Q1", answerTranscript: "A1" }],
       });
 
       expect(result.score).toBeGreaterThan(0);
@@ -99,7 +99,7 @@ describe("MockAiProvider", () => {
     it("returns different summary for ai_completed", async () => {
       const result = await provider.finalizeInterview({
         completionReason: "ai_completed",
-        turns: [{ turnIndex: 1, questionText: "Q1", answerTranscript: "A1" }]
+        turns: [{ turnIndex: 1, questionText: "Q1", answerTranscript: "A1" }],
       });
 
       expect(result.score).toBeGreaterThan(0);
@@ -109,7 +109,7 @@ describe("MockAiProvider", () => {
     it("returns higher score with more turns", async () => {
       const fewTurns = await provider.finalizeInterview({
         completionReason: "ai_completed",
-        turns: [{ turnIndex: 1, questionText: "Q1", answerTranscript: "A1" }]
+        turns: [{ turnIndex: 1, questionText: "Q1", answerTranscript: "A1" }],
       });
 
       const manyTurns = await provider.finalizeInterview({
@@ -117,8 +117,8 @@ describe("MockAiProvider", () => {
         turns: Array.from({ length: 10 }, (_, i) => ({
           turnIndex: i + 1,
           questionText: `Q${i + 1}`,
-          answerTranscript: `A${i + 1}`
-        }))
+          answerTranscript: `A${i + 1}`,
+        })),
       });
 
       expect(manyTurns.score).toBeGreaterThan(fewTurns.score);

@@ -22,10 +22,7 @@ export function SessionProgress({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-        <span
-          className="mono"
-          style={{ fontSize: 12, color: "var(--ink-900)", fontWeight: 500 }}
-        >
+        <span className="mono" style={{ fontSize: 12, color: "var(--ink-900)", fontWeight: 500 }}>
           Q{current}
         </span>
         <span className="micro-text">of est. {plannedTotal}</span>
@@ -54,10 +51,7 @@ export function SessionProgress({
           </div>
         ))}
       </div>
-      <div
-        className="micro-text"
-        style={{ display: "flex", justifyContent: "space-between" }}
-      >
+      <div className="micro-text" style={{ display: "flex", justifyContent: "space-between" }}>
         <span>AI may end after Q{min}</span>
         <span>Hard cap Q{max}</span>
       </div>

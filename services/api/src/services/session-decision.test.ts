@@ -7,7 +7,7 @@ describe("decideAdaptiveTransition", () => {
       answeredCount: 12,
       minQuestionCount: 3,
       maxQuestionCount: 12,
-      aiDecision: "continue"
+      aiDecision: "continue",
     });
     expect(result).toBe("finish_by_max_guard");
   });
@@ -17,7 +17,7 @@ describe("decideAdaptiveTransition", () => {
       answeredCount: 15,
       minQuestionCount: 3,
       maxQuestionCount: 12,
-      aiDecision: "continue"
+      aiDecision: "continue",
     });
     expect(result).toBe("finish_by_max_guard");
   });
@@ -27,7 +27,7 @@ describe("decideAdaptiveTransition", () => {
       answeredCount: 2,
       minQuestionCount: 3,
       maxQuestionCount: 12,
-      aiDecision: "finish"
+      aiDecision: "finish",
     });
     expect(result).toBe("continue");
   });
@@ -37,7 +37,7 @@ describe("decideAdaptiveTransition", () => {
       answeredCount: 4,
       minQuestionCount: 3,
       maxQuestionCount: 12,
-      aiDecision: "finish"
+      aiDecision: "finish",
     });
     expect(result).toBe("finish_by_ai");
   });
@@ -47,7 +47,7 @@ describe("decideAdaptiveTransition", () => {
       answeredCount: 5,
       minQuestionCount: 3,
       maxQuestionCount: 12,
-      aiDecision: "continue"
+      aiDecision: "continue",
     });
     expect(result).toBe("continue");
   });
@@ -57,7 +57,7 @@ describe("decideAdaptiveTransition", () => {
       answeredCount: 3,
       minQuestionCount: 3,
       maxQuestionCount: 12,
-      aiDecision: "continue"
+      aiDecision: "continue",
     });
     expect(result).toBe("continue");
   });
@@ -67,7 +67,7 @@ describe("decideAdaptiveTransition", () => {
       answeredCount: 3,
       minQuestionCount: 3,
       maxQuestionCount: 12,
-      aiDecision: "finish"
+      aiDecision: "finish",
     });
     expect(result).toBe("finish_by_ai");
   });

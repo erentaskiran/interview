@@ -13,14 +13,14 @@ import { sessionRoutes } from "./routes/session-routes.js";
 export const buildApp = () => {
   const app = Fastify({
     logger: env.NODE_ENV !== "test",
-    bodyLimit: env.BODY_LIMIT_MB * 1024 * 1024
+    bodyLimit: env.BODY_LIMIT_MB * 1024 * 1024,
   });
 
   app.decorate("aiProvider", createAiProvider(env));
   app.decorate("speechClient", new SpeechServiceClient({ baseUrl: env.SPEECH_SERVICE_URL }));
 
   void app.register(cors, {
-    origin: true
+    origin: true,
   });
   void app.register(prismaPlugin);
   void app.register(authPlugin, { jwtSecret: env.JWT_SECRET });

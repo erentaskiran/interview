@@ -25,8 +25,8 @@ describe("auth routes", () => {
         payload: {
           email: "test@example.com",
           displayName: "Test User",
-          password: "password123"
-        }
+          password: "password123",
+        },
       });
 
       expect(response.statusCode).toBe(201);
@@ -44,8 +44,8 @@ describe("auth routes", () => {
         payload: {
           email: "not-an-email",
           displayName: "Test",
-          password: "password123"
-        }
+          password: "password123",
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -60,8 +60,8 @@ describe("auth routes", () => {
         payload: {
           email: "test@example.com",
           displayName: "Test",
-          password: "short"
-        }
+          password: "short",
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -74,8 +74,8 @@ describe("auth routes", () => {
         payload: {
           email: "test@example.com",
           displayName: "T",
-          password: "password123"
-        }
+          password: "password123",
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -85,7 +85,7 @@ describe("auth routes", () => {
       await createTestUser(app, {
         email: "dup@example.com",
         displayName: "User One",
-        password: "password123"
+        password: "password123",
       });
 
       const response = await app.inject({
@@ -94,8 +94,8 @@ describe("auth routes", () => {
         payload: {
           email: "dup@example.com",
           displayName: "User Two",
-          password: "password123"
-        }
+          password: "password123",
+        },
       });
 
       expect(response.statusCode).toBe(409);
@@ -109,7 +109,7 @@ describe("auth routes", () => {
       const { user } = await createTestUser(app, {
         email: "login@example.com",
         displayName: "Login User",
-        password: "password123"
+        password: "password123",
       });
 
       const response = await app.inject({
@@ -117,8 +117,8 @@ describe("auth routes", () => {
         url: "/auth/login",
         payload: {
           email: "login@example.com",
-          password: "password123"
-        }
+          password: "password123",
+        },
       });
 
       expect(response.statusCode).toBe(200);
@@ -133,8 +133,8 @@ describe("auth routes", () => {
         url: "/auth/login",
         payload: {
           email: "noone@example.com",
-          password: "password123"
-        }
+          password: "password123",
+        },
       });
 
       expect(response.statusCode).toBe(401);
@@ -146,7 +146,7 @@ describe("auth routes", () => {
       await createTestUser(app, {
         email: "wrong@example.com",
         displayName: "Wrong User",
-        password: "password123"
+        password: "password123",
       });
 
       const response = await app.inject({
@@ -154,8 +154,8 @@ describe("auth routes", () => {
         url: "/auth/login",
         payload: {
           email: "wrong@example.com",
-          password: "wrongpassword"
-        }
+          password: "wrongpassword",
+        },
       });
 
       expect(response.statusCode).toBe(401);
@@ -169,8 +169,8 @@ describe("auth routes", () => {
         url: "/auth/login",
         payload: {
           email: "not-an-email",
-          password: "short"
-        }
+          password: "short",
+        },
       });
 
       expect(response.statusCode).toBe(400);
@@ -182,13 +182,13 @@ describe("auth routes", () => {
       const { token, user } = await createTestUser(app, {
         email: "me@example.com",
         displayName: "Me User",
-        password: "password123"
+        password: "password123",
       });
 
       const response = await app.inject({
         method: "GET",
         url: "/auth/me",
-        headers: { authorization: `Bearer ${token}` }
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -202,7 +202,7 @@ describe("auth routes", () => {
     it("returns 401 without token", async () => {
       const response = await app.inject({
         method: "GET",
-        url: "/auth/me"
+        url: "/auth/me",
       });
 
       expect(response.statusCode).toBe(401);
@@ -212,7 +212,7 @@ describe("auth routes", () => {
       const response = await app.inject({
         method: "GET",
         url: "/auth/me",
-        headers: { authorization: "Bearer invalid-token" }
+        headers: { authorization: "Bearer invalid-token" },
       });
 
       expect(response.statusCode).toBe(401);
@@ -222,7 +222,7 @@ describe("auth routes", () => {
       const { token, user } = await createTestUser(app, {
         email: "deleted@example.com",
         displayName: "Deleted User",
-        password: "password123"
+        password: "password123",
       });
 
       await prisma.user.delete({ where: { id: user.id } });
@@ -230,7 +230,7 @@ describe("auth routes", () => {
       const response = await app.inject({
         method: "GET",
         url: "/auth/me",
-        headers: { authorization: `Bearer ${token}` }
+        headers: { authorization: `Bearer ${token}` },
       });
 
       expect(response.statusCode).toBe(404);
