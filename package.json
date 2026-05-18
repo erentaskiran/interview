@@ -15,7 +15,8 @@
     "dev:web": "npm run dev -w @ainterview/web",
     "test": "npm run test -w @ainterview/api && npm run test -w @ainterview/speech",
     "prisma:generate": "npm run prisma:generate -w @ainterview/api",
-    "prisma:migrate": "npm run prisma:migrate -w @ainterview/api"
+    "prisma:migrate": "npm run prisma:migrate -w @ainterview/api",
+    "prisma:migrate:deploy": "npm run prisma:deploy -w @ainterview/api"
   },
   "engines": {
     "node": ">=20.0.0"
