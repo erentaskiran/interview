@@ -9,6 +9,8 @@ pnpm-lock.yaml
 
 .turbo
 .vite
+playwright-report
+test-results
 apps/web/node_modules
 services/api/node_modules
 services/speech/node_modules
