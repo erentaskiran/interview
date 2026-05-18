@@ -6,11 +6,11 @@ coverage
 .env.local
 *.log
 pnpm-lock.yaml
-package-lock.json
+
 .turbo
 .vite
 apps/web/node_modules
 services/api/node_modules
 services/speech/node_modules
 packages/shared/node_modules
-services/api/prisma/migrations
+
