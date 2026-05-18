@@ -13,7 +13,7 @@
     "dev:api": "npm run dev -w @ainterview/api",
     "dev:speech": "npm run dev -w @ainterview/speech",
     "dev:web": "npm run dev -w @ainterview/web",
-    "test": "npm run test -w @ainterview/api && npm run test -w @ainterview/speech",
+    "test": "npm run test -w @ainterview/api && npm run test -w @ainterview/speech && npm run test -w @ainterview/web",
     "prisma:generate": "npm run prisma:generate -w @ainterview/api",
     "prisma:migrate": "npm run prisma:migrate -w @ainterview/api",
     "prisma:migrate:deploy": "npm run prisma:deploy -w @ainterview/api",
