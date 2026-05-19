@@ -20,7 +20,7 @@ import SessionPage from "./pages/Session";
 import SessionsPage from "./pages/Sessions";
 import SettingsPage from "./pages/Settings";
 import TemplateCreatePage from "./pages/TemplateCreate";
-import TemplateDetailPage from "./pages/TemplateDetail";
+import TemplateDetailRoute from "./routes/TemplateDetailRoute";
 
 const TOKEN_KEY = "ainterview_token";
 
@@ -357,11 +357,12 @@ export default function App() {
   const DiscoverRoute = () => {
     const navigate = useNavigate();
     const menu = menuActions(navigate);
+    const [searchParams, setSearchParams] = useSearchParams();
     const [templates, setTemplates] = useState<Template[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState("All");
-    const [search, setSearch] = useState("");
+    const search = searchParams.get("q") ?? "";
 
     const loadTemplates = useCallback(async () => {
       setLoading(true);
@@ -399,7 +400,13 @@ export default function App() {
         error={error}
         counts={counts}
         onCategoryChange={setSelectedCategory}
-        onSearchChange={setSearch}
+        onSearchChange={(value) => {
+          if (value) {
+            setSearchParams({ q: value });
+          } else {
+            setSearchParams({});
+          }
+        }}
         onCreateTemplate={() => navigate("/templates/new")}
         onOpenTemplate={(templateId) => navigate(`/templates/${templateId}`)}
         onStartTemplate={async (templateId) => {
@@ -689,95 +696,17 @@ export default function App() {
     );
   };
 
-  const TemplateDetailRoute = () => {
-    const navigate = useNavigate();
-    const menu = menuActions(navigate);
-    const params = useParams<{ id: string }>();
-    const templateId = params.id ?? "";
-    const [template, setTemplate] = useState<Template | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const loadTemplate = useCallback(async () => {
-      if (!templateId) {
-        setError("Template id is missing.");
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await api.get<TemplateResponse>(`/templates/${templateId}`);
-        setTemplate(response.template);
-      } catch (loadError) {
-        setError(parseError(loadError));
-      } finally {
-        setLoading(false);
-      }
-    }, [templateId]);
-
-    useEffect(() => {
-      void loadTemplate();
-    }, [loadTemplate]);
-
-    const isLiked = likedTemplateIds.has(templateId);
-
-    return (
-      <TemplateDetailPage
-        user={user}
-        template={template}
-        liked={isLiked}
-        loading={loading}
-        error={error}
-        counts={counts}
-        onBack={() => navigate("/discover")}
-        onOpenProfile={menu.onOpenProfile}
-        onOpenLiked={menu.onOpenLiked}
-        onOpenSessions={menu.onOpenSessions}
-        onOpenSettings={menu.onOpenSettings}
-        onLogout={menu.onLogout}
-        onRetry={() => {
-          void loadTemplate();
-        }}
-        onOpenAuthor={(authorId) => {
-          navigate(`/profile/${authorId}`);
-        }}
-        onStartInterview={async () => {
-          if (!templateId) {
-            return;
-          }
-          try {
-            await startSession(templateId, navigate);
-          } catch (startError) {
-            setError(parseError(startError));
-          }
-        }}
-        onToggleLike={async () => {
-          if (!template) {
-            return;
-          }
-          try {
-            await toggleLike(template.id, isLiked);
-            setTemplate((previous) => {
-              if (!previous) {
-                return previous;
-              }
-              const currentLikes = previous._count?.likes ?? 0;
-              return {
-                ...previous,
-                _count: {
-                  likes: Math.max(0, currentLikes + (isLiked ? -1 : 1)),
-                },
-              };
-            });
-          } catch (toggleError) {
-            setError(parseError(toggleError));
-          }
-        }}
-      />
-    );
-  };
+  const templateDetailElement = user ? (
+    <TemplateDetailRoute
+      api={api}
+      user={user}
+      likedTemplateIds={likedTemplateIds}
+      toggleLike={toggleLike}
+      startSession={startSession}
+      counts={counts}
+      onLogout={logout}
+    />
+  ) : null;
 
   const ProfileRoute = () => {
     const navigate = useNavigate();
@@ -1070,7 +999,7 @@ export default function App() {
       <Route path="/sessions/:id" element={<SessionDetailRoute />} />
       <Route path="/settings" element={<SettingsRoute />} />
       <Route path="/templates/new" element={<TemplateCreateRoute />} />
-      <Route path="/templates/:id" element={<TemplateDetailRoute />} />
+      <Route path="/templates/:id" element={templateDetailElement} />
       <Route path="/profile/:id" element={<ProfileRoute />} />
       <Route path="/me" element={<MeRedirect />} />
       <Route path="/login" element={<Navigate to="/discover" replace />} />

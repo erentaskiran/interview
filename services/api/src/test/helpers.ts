@@ -41,7 +41,10 @@ export async function buildTestApp() {
     speechToText: async () => "mock transcript",
   } as unknown as SpeechServiceClient);
 
-  await app.register(cors, { origin: true });
+  await app.register(cors, {
+    origin: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+  });
   app.decorate("prisma", prisma);
   await app.register(authPlugin, { jwtSecret: "test-secret-key-for-jwt-123" });
 

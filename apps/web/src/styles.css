@@ -207,9 +207,14 @@ a {
   height: 100%;
   display: grid;
   grid-template-columns: 232px 1fr;
+  grid-template-rows: 1fr;
   background: var(--bg);
   color: var(--ink-900);
   overflow: hidden;
+}
+
+.page > :nth-child(2) {
+  min-height: 0;
 }
 
 .page--bare {
@@ -332,6 +337,26 @@ a {
   border-radius: var(--r-md);
   color: var(--ink-500);
   font-size: 13px;
+  cursor: pointer;
+}
+
+.top__search:hover {
+  border-color: var(--ink-400);
+  background: var(--surface);
+}
+
+.top__search-input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 13px;
+  color: var(--ink-900);
+  font-family: inherit;
+}
+
+.top__search-input::placeholder {
+  color: var(--ink-500);
 }
 
 .top__kbd {
@@ -411,6 +436,8 @@ a {
 
 .main--scroll {
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── buttons ── */

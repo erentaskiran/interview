@@ -49,7 +49,7 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
   constructor(private readonly config: OpenCodeConfig) {}
 
   private async callModel(prompt: string): Promise<string> {
-    const model = this.config.model ?? "gpt-4.1-mini";
+    const model = this.config.model ?? "deepseek-v4-flash";
     const response = await fetch(this.config.apiUrl, {
       method: "POST",
       headers: {
@@ -171,7 +171,7 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
         Authorization: `Bearer ${this.config.apiKey}`,
       },
       body: JSON.stringify({
-        model: this.config.model ?? "gpt-4.1-mini",
+        model: this.config.model ?? "deepseek-v4-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },

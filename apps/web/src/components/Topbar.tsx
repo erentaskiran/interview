@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { Avatar } from "./Avatar";
 import { Icon, IconBtn } from "./Icon";
 
@@ -31,8 +32,25 @@ export function Topbar({
   onOpenSettings,
   onLogout,
 }: TopbarProps) {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearchSubmit = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        const trimmed = searchQuery.trim();
+        if (trimmed) {
+          navigate(`/discover?q=${encodeURIComponent(trimmed)}`);
+        } else {
+          navigate("/discover");
+        }
+      }
+    },
+    [navigate, searchQuery]
+  );
 
   const menuItems = useMemo(
     () =>
@@ -81,6 +99,17 @@ export function Topbar({
     };
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <header className="top">
       {crumb && (
@@ -109,9 +138,21 @@ export function Topbar({
         </span>
       )}
       {!hideSearch && (
-        <div className="top__search" style={{ marginLeft: crumb || title ? 24 : 0 }}>
+        <div
+          className="top__search"
+          style={{ marginLeft: crumb || title ? 24 : 0 }}
+          onClick={() => searchInputRef.current?.focus()}
+        >
           <Icon name="search" size={14} />
-          <span>Search templates, prompts, people…</span>
+          <input
+            ref={searchInputRef}
+            type="text"
+            className="top__search-input"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchSubmit}
+            placeholder="Search templates, prompts, people…"
+          />
           <span className="top__kbd">⌘K</span>
         </div>
       )}

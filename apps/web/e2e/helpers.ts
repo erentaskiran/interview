@@ -1,6 +1,6 @@
 import type { APIRequestContext } from "@playwright/test";
 
-export const API_BASE_URL = "http://localhost:4000";
+export const API_BASE_URL = "http://127.0.0.1:4000";
 
 export async function apiRegister(
   request: APIRequestContext,
@@ -67,18 +67,39 @@ export async function login(page: any, email: string, password: string) {
 
 export async function gotoPage(page: any, url: string) {
   await page.goto(url);
+
+  // Wait for boot Loading... if present
   try {
     await page.waitForSelector("text=Loading...", { timeout: 3000 });
-    await page.waitForSelector("text=Loading...", { state: "detached", timeout: 10000 });
+    await page.waitForSelector("text=Loading...", {
+      state: "detached",
+      timeout: 10000,
+    });
   } catch {
-    // Loading spinner not present; page may have redirected to auth routes
+    // Boot loading not present
   }
-  // If bootstrapping caused a redirect to /discover, navigate again
+
+  // Handle redirect from bootLoading
   if (!page.url().includes(url.replace(/^\//, ""))) {
     await page.goto(url);
-    try {
-      await page.waitForSelector("text=Loading...", { timeout: 3000 });
-      await page.waitForSelector("text=Loading...", { state: "detached", timeout: 10000 });
-    } catch {}
   }
+
+  // Wait for page-level loading states to resolve
+  try {
+    await Promise.race([
+      page.waitForSelector("text=Loading template...", { state: "detached", timeout: 15000 }),
+      page.waitForSelector("text=Loading liked templates...", {
+        state: "detached",
+        timeout: 15000,
+      }),
+      page.waitForSelector("text=Loading sessions...", { state: "detached", timeout: 15000 }),
+      page.waitForSelector("text=Loading profile...", { state: "detached", timeout: 15000 }),
+      page.waitForSelector("text=Loading session...", { state: "detached", timeout: 15000 }),
+    ]);
+  } catch {
+    // No loading state appeared
+  }
+
+  // Small extra wait for React renders
+  await page.waitForTimeout(500);
 }
