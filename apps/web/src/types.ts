@@ -63,12 +63,14 @@ export type Session = {
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
-  template?: {
-    id: string;
-    title: string;
-    category: string;
-    voiceModel?: string;
-  } | Template;
+  template?:
+    | {
+        id: string;
+        title: string;
+        category: string;
+        voiceModel?: string;
+      }
+    | Template;
   _count?: {
     turns: number;
   };

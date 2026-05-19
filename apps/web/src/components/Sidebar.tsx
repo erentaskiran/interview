@@ -18,7 +18,7 @@ const navGroups: {
       { id: "discover", icon: "compass", label: "Discover", path: "/discover" },
       { id: "my", icon: "bookmark", label: "My templates", path: "/me?tab=templates" },
       { id: "liked", icon: "heart", label: "Liked", path: "/liked" },
-      { id: "sessions", icon: "headset", label: "Sessions", path: "/sessions" }
+      { id: "sessions", icon: "headset", label: "Sessions", path: "/sessions" },
     ],
   },
   {
@@ -67,7 +67,7 @@ const navBadge = (
 export function Sidebar({
   active = null,
   user = { name: "Unknown User", sub: "" },
-  counts
+  counts,
 }: SidebarProps) {
   const initials = user.name
     .split(" ")

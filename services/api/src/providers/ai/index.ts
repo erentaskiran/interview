@@ -6,14 +6,12 @@ import type { AiInterviewProvider } from "./types.js";
 export const createAiProvider = (env: AppEnv): AiInterviewProvider => {
   if (env.AI_PROVIDER === "opencode") {
     if (!env.OPENCODE_API_URL || !env.OPENCODE_API_KEY) {
-      throw new Error(
-        "AI_PROVIDER=opencode requires OPENCODE_API_URL and OPENCODE_API_KEY"
-      );
+      throw new Error("AI_PROVIDER=opencode requires OPENCODE_API_URL and OPENCODE_API_KEY");
     }
     const opencode = new OpenCodeAiProvider({
       apiUrl: env.OPENCODE_API_URL,
       apiKey: env.OPENCODE_API_KEY,
-      ...(env.OPENCODE_MODEL ? { model: env.OPENCODE_MODEL } : {})
+      ...(env.OPENCODE_MODEL ? { model: env.OPENCODE_MODEL } : {}),
     });
     const fallback = new MockAiProvider();
 
@@ -45,7 +43,7 @@ export const createAiProvider = (env: AppEnv): AiInterviewProvider => {
         } catch {
           return fallback.generateTemplate(prompt);
         }
-      }
+      },
     };
   }
 

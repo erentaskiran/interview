@@ -7,7 +7,7 @@ import {
   useNavigate,
   useParams,
   useSearchParams,
-  type NavigateFunction
+  type NavigateFunction,
 } from "react-router-dom";
 import { createApiClient, HttpError } from "./api";
 import type { Session, SessionTurn, Template, TtsPayload, User } from "./types";
@@ -20,7 +20,7 @@ import SessionPage from "./pages/Session";
 import SessionsPage from "./pages/Sessions";
 import SettingsPage from "./pages/Settings";
 import TemplateCreatePage from "./pages/TemplateCreate";
-import TemplateDetailPage from "./pages/TemplateDetail";
+import TemplateDetailRoute from "./routes/TemplateDetailRoute";
 
 const TOKEN_KEY = "ainterview_token";
 
@@ -114,7 +114,7 @@ export default function App() {
   const [likedTemplateIds, setLikedTemplateIds] = useState<Set<string>>(new Set());
   const [sidebarCounts, setSidebarCounts] = useState({
     myTemplates: 0,
-    likedTemplates: 0
+    likedTemplates: 0,
   });
   const [sessionCount, setSessionCount] = useState(0);
   const [questionAudioBySessionTurn, setQuestionAudioBySessionTurn] = useState<
@@ -125,7 +125,7 @@ export default function App() {
     () => ({
       myTemplates: sidebarCounts.myTemplates,
       likedTemplates: sidebarCounts.likedTemplates,
-      sessions: sessionCount
+      sessions: sessionCount,
     }),
     [sessionCount, sidebarCounts]
   );
@@ -172,12 +172,12 @@ export default function App() {
       try {
         const [profile, sessions] = await Promise.all([
           api.get<ProfileApiResponse>(`/users/${viewerId}/profile`),
-          api.get<SessionsResponse>("/sessions?limit=1")
+          api.get<SessionsResponse>("/sessions?limit=1"),
         ]);
         setLikedIdsIfChanged(profile.likedTemplates.map((template) => template.id));
         setSidebarCountsIfChanged({
           myTemplates: profile.templates.length,
-          likedTemplates: profile.likedTemplates.length
+          likedTemplates: profile.likedTemplates.length,
         });
         setSessionCount(sessions.totalCount);
       } catch {
@@ -272,8 +272,8 @@ export default function App() {
             ...previous,
             [started.session.id]: {
               ...(previous[started.session.id] ?? {}),
-              1: firstQuestionAudio
-            }
+              1: firstQuestionAudio,
+            },
           }));
         }
         navigate(`/sessions/${started.session.id}`);
@@ -293,7 +293,7 @@ export default function App() {
       onOpenLiked: () => navigate("/liked"),
       onOpenSessions: () => navigate("/sessions"),
       onOpenSettings: () => navigate("/settings"),
-      onLogout: logout
+      onLogout: logout,
     }),
     [logout, user]
   );
@@ -307,7 +307,7 @@ export default function App() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 8
+            gap: 8,
           }}
         >
           <div className="h3" style={{ fontWeight: 500 }}>
@@ -357,11 +357,12 @@ export default function App() {
   const DiscoverRoute = () => {
     const navigate = useNavigate();
     const menu = menuActions(navigate);
+    const [searchParams, setSearchParams] = useSearchParams();
     const [templates, setTemplates] = useState<Template[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState("All");
-    const [search, setSearch] = useState("");
+    const search = searchParams.get("q") ?? "";
 
     const loadTemplates = useCallback(async () => {
       setLoading(true);
@@ -399,7 +400,13 @@ export default function App() {
         error={error}
         counts={counts}
         onCategoryChange={setSelectedCategory}
-        onSearchChange={setSearch}
+        onSearchChange={(value) => {
+          if (value) {
+            setSearchParams({ q: value });
+          } else {
+            setSearchParams({});
+          }
+        }}
         onCreateTemplate={() => navigate("/templates/new")}
         onOpenTemplate={(templateId) => navigate(`/templates/${templateId}`)}
         onStartTemplate={async (templateId) => {
@@ -421,8 +428,8 @@ export default function App() {
                 return {
                   ...template,
                   _count: {
-                    likes: Math.max(0, currentLikes + (currentlyLiked ? -1 : 1))
-                  }
+                    likes: Math.max(0, currentLikes + (currentlyLiked ? -1 : 1)),
+                  },
                 };
               })
             );
@@ -493,8 +500,8 @@ export default function App() {
                         likes: Math.max(
                           0,
                           (template._count?.likes ?? 0) + (currentlyLiked ? -1 : 1)
-                        )
-                      }
+                        ),
+                      },
                     }
                   : template
               )
@@ -532,7 +539,7 @@ export default function App() {
         setLikedIdsIfChanged(profile.likedTemplates.map((template) => template.id));
         setSidebarCountsIfChanged({
           myTemplates: profile.templates.length,
-          likedTemplates: profile.likedTemplates.length
+          likedTemplates: profile.likedTemplates.length,
         });
       } catch (loadError) {
         setError(parseError(loadError));
@@ -674,7 +681,9 @@ export default function App() {
           setAiGenerating(true);
           setAiError(null);
           try {
-            const generated = await api.post<GenerateTemplateResponse>("/templates/generate", { prompt });
+            const generated = await api.post<GenerateTemplateResponse>("/templates/generate", {
+              prompt,
+            });
             return generated;
           } catch (generateError) {
             setAiError(parseError(generateError));
@@ -687,95 +696,17 @@ export default function App() {
     );
   };
 
-  const TemplateDetailRoute = () => {
-    const navigate = useNavigate();
-    const menu = menuActions(navigate);
-    const params = useParams<{ id: string }>();
-    const templateId = params.id ?? "";
-    const [template, setTemplate] = useState<Template | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const loadTemplate = useCallback(async () => {
-      if (!templateId) {
-        setError("Template id is missing.");
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await api.get<TemplateResponse>(`/templates/${templateId}`);
-        setTemplate(response.template);
-      } catch (loadError) {
-        setError(parseError(loadError));
-      } finally {
-        setLoading(false);
-      }
-    }, [templateId]);
-
-    useEffect(() => {
-      void loadTemplate();
-    }, [loadTemplate]);
-
-    const isLiked = likedTemplateIds.has(templateId);
-
-    return (
-      <TemplateDetailPage
-        user={user}
-        template={template}
-        liked={isLiked}
-        loading={loading}
-        error={error}
-        counts={counts}
-        onBack={() => navigate("/discover")}
-        onOpenProfile={menu.onOpenProfile}
-        onOpenLiked={menu.onOpenLiked}
-        onOpenSessions={menu.onOpenSessions}
-        onOpenSettings={menu.onOpenSettings}
-        onLogout={menu.onLogout}
-        onRetry={() => {
-          void loadTemplate();
-        }}
-        onOpenAuthor={(authorId) => {
-          navigate(`/profile/${authorId}`);
-        }}
-        onStartInterview={async () => {
-          if (!templateId) {
-            return;
-          }
-          try {
-            await startSession(templateId, navigate);
-          } catch (startError) {
-            setError(parseError(startError));
-          }
-        }}
-        onToggleLike={async () => {
-          if (!template) {
-            return;
-          }
-          try {
-            await toggleLike(template.id, isLiked);
-            setTemplate((previous) => {
-              if (!previous) {
-                return previous;
-              }
-              const currentLikes = previous._count?.likes ?? 0;
-              return {
-                ...previous,
-                _count: {
-                  likes: Math.max(0, currentLikes + (isLiked ? -1 : 1))
-                }
-              };
-            });
-          } catch (toggleError) {
-            setError(parseError(toggleError));
-          }
-        }}
-      />
-    );
-  };
+  const templateDetailElement = user ? (
+    <TemplateDetailRoute
+      api={api}
+      user={user}
+      likedTemplateIds={likedTemplateIds}
+      toggleLike={toggleLike}
+      startSession={startSession}
+      counts={counts}
+      onLogout={logout}
+    />
+  ) : null;
 
   const ProfileRoute = () => {
     const navigate = useNavigate();
@@ -852,14 +783,14 @@ export default function App() {
                 return {
                   ...template,
                   _count: {
-                    likes: Math.max(0, likes + (currentlyLiked ? -1 : 1))
-                  }
+                    likes: Math.max(0, likes + (currentlyLiked ? -1 : 1)),
+                  },
                 };
               };
               return {
                 ...previous,
                 templates: previous.templates.map(updateTemplate),
-                likedTemplates: previous.likedTemplates.map(updateTemplate)
+                likedTemplates: previous.likedTemplates.map(updateTemplate),
               };
             });
           } catch (toggleError) {
@@ -882,9 +813,9 @@ export default function App() {
                         ...previous.user,
                         _count: {
                           ...previous.user._count,
-                          followers: Math.max(0, previous.user._count.followers - 1)
-                        }
-                      }
+                          followers: Math.max(0, previous.user._count.followers - 1),
+                        },
+                      },
                     }
                   : previous
               );
@@ -899,9 +830,9 @@ export default function App() {
                         ...previous.user,
                         _count: {
                           ...previous.user._count,
-                          followers: previous.user._count.followers + 1
-                        }
-                      }
+                          followers: previous.user._count.followers + 1,
+                        },
+                      },
                     }
                   : previous
               );
@@ -982,8 +913,8 @@ export default function App() {
               ...previous,
               [sessionId]: {
                 ...(previous[sessionId] ?? {}),
-                [response.turnIndex]: response.audio
-              }
+                [response.turnIndex]: response.audio,
+              },
             }));
             return response.audio;
           } catch {
@@ -1028,8 +959,8 @@ export default function App() {
                 ...previous,
                 [sessionId]: {
                   ...(previous[sessionId] ?? {}),
-                  [nextTurn.turnIndex]: nextQuestionAudio
-                }
+                  [nextTurn.turnIndex]: nextQuestionAudio,
+                },
               }));
             }
           } catch (submitError) {
@@ -1068,7 +999,7 @@ export default function App() {
       <Route path="/sessions/:id" element={<SessionDetailRoute />} />
       <Route path="/settings" element={<SettingsRoute />} />
       <Route path="/templates/new" element={<TemplateCreateRoute />} />
-      <Route path="/templates/:id" element={<TemplateDetailRoute />} />
+      <Route path="/templates/:id" element={templateDetailElement} />
       <Route path="/profile/:id" element={<ProfileRoute />} />
       <Route path="/me" element={<MeRedirect />} />
       <Route path="/login" element={<Navigate to="/discover" replace />} />

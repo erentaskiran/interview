@@ -48,8 +48,7 @@ export type IconName =
 
 const paths: Record<IconName, string> = {
   home: "M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z",
-  compass:
-    "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM10 14l1.5-4 4-1.5L14 12.5z",
+  compass: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM10 14l1.5-4 4-1.5L14 12.5z",
   sparkle:
     "M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6zM18 14l.9 2.6 2.6.9-2.6.9L18 21l-.9-2.6-2.6-.9 2.6-.9z",
   plus: "M12 5v14M5 12h14",

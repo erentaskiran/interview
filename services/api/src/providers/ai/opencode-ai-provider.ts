@@ -6,7 +6,7 @@ import type {
   FinalizeInterviewInput,
   GenerateTemplateResult,
   StartInterviewInput,
-  StartInterviewResult
+  StartInterviewResult,
 } from "./types.js";
 
 interface OpenCodeConfig {
@@ -43,34 +43,33 @@ const extractJsonObject = <T>(raw: string): T => {
   }
 };
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 export class OpenCodeAiProvider implements AiInterviewProvider {
   constructor(private readonly config: OpenCodeConfig) {}
 
   private async callModel(prompt: string): Promise<string> {
-    const model = this.config.model ?? "gpt-4.1-mini";
+    const model = this.config.model ?? "deepseek-v4-flash";
     const response = await fetch(this.config.apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${this.config.apiKey}`
+        Authorization: `Bearer ${this.config.apiKey}`,
       },
       body: JSON.stringify({
         model,
         messages: [
           {
             role: "system",
-            content: "Return strictly valid JSON only."
+            content: "Return strictly valid JSON only.",
           },
           {
             role: "user",
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
-        temperature: 0.2
-      })
+        temperature: 0.2,
+      }),
     });
 
     if (!response.ok) {
@@ -100,7 +99,7 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
       `Category: ${input.templateCategory}`,
       `Description: ${input.templateDescription}`,
       `System instruction: ${input.systemInstruction}`,
-      `Question bounds: min=${input.minQuestionCount}, max=${input.maxQuestionCount}`
+      `Question bounds: min=${input.minQuestionCount}, max=${input.maxQuestionCount}`,
     ].join("\n");
 
     const raw = await this.callModel(prompt);
@@ -122,13 +121,11 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
         input.minQuestionCount,
         input.maxQuestionCount
       ),
-      firstQuestion: parsed.firstQuestion
+      firstQuestion: parsed.firstQuestion,
     };
   }
 
-  async continueInterview(
-    input: ContinueInterviewInput
-  ): Promise<ContinueInterviewResult> {
+  async continueInterview(input: ContinueInterviewInput): Promise<ContinueInterviewResult> {
     const prompt = [
       "You evaluate interview progress.",
       "Return ONLY valid JSON with keys: decision, reasoning, nextQuestion.",
@@ -136,7 +133,7 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
       `Min questions: ${input.minQuestionCount}`,
       `Max questions: ${input.maxQuestionCount}`,
       `Planned questions: ${input.plannedQuestionCount}`,
-      `Turns: ${JSON.stringify(input.turns)}`
+      `Turns: ${JSON.stringify(input.turns)}`,
     ].join("\n");
 
     const raw = await this.callModel(prompt);
@@ -162,7 +159,7 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
       "description: a detailed description of the interview context and rubric intent (10-1500 chars).",
       "systemInstruction: a detailed system prompt for an AI interviewer role (10-8000 chars).",
       "CRITICAL: The user may describe their request in any language, but you MUST generate all fields (title, category, description, systemInstruction) in English only.",
-      "The output must be strictly JSON, no markdown, no extra text."
+      "The output must be strictly JSON, no markdown, no extra text.",
     ].join(" ");
 
     const userPrompt = `User request: ${prompt}`;
@@ -171,16 +168,16 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${this.config.apiKey}`
+        Authorization: `Bearer ${this.config.apiKey}`,
       },
       body: JSON.stringify({
-        model: this.config.model ?? "gpt-4.1-mini",
+        model: this.config.model ?? "deepseek-v4-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
+          { role: "user", content: userPrompt },
         ],
-        temperature: 0.5
-      })
+        temperature: 0.5,
+      }),
     });
 
     if (!response.ok) {
@@ -220,7 +217,7 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
       "Return ONLY valid JSON with keys: score, feedback.",
       "feedback must include strengths, weakAreas, suggestions, summary.",
       `Completion reason: ${input.completionReason}`,
-      `Turns: ${JSON.stringify(input.turns)}`
+      `Turns: ${JSON.stringify(input.turns)}`,
     ].join("\n");
 
     const raw = await this.callModel(prompt);

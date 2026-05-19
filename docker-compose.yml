@@ -11,7 +11,8 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ainterview} -d ${POSTGRES_DB:-ainterview}"]
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ainterview} -d ${POSTGRES_DB:-ainterview}"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -24,7 +25,7 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - ./services/api/.env.example
+      - ./services/api/.env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-ainterview}:${POSTGRES_PASSWORD:-ainterview}@postgres:5432/${POSTGRES_DB:-ainterview}
       NODE_ENV: development
@@ -36,7 +37,7 @@ services:
       context: .
       dockerfile: services/speech/Dockerfile
     env_file:
-      - ./services/speech/.env.example
+      - ./services/speech/.env
     environment:
       NODE_ENV: development
     ports:

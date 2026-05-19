@@ -21,13 +21,7 @@ type AuthPageProps = {
   onSubmit: (mode: AuthMode, payload: AuthSubmitPayload) => Promise<void>;
 };
 
-export default function AuthPage({
-  mode,
-  loading,
-  error,
-  onModeChange,
-  onSubmit
-}: AuthPageProps) {
+export default function AuthPage({ mode, loading, error, onModeChange, onSubmit }: AuthPageProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -71,7 +65,7 @@ export default function AuthPage({
     await onSubmit(mode, {
       email: email.trim(),
       password,
-      ...(mode === "register" ? { displayName: displayName.trim() } : {})
+      ...(mode === "register" ? { displayName: displayName.trim() } : {}),
     });
   };
 
@@ -83,7 +77,7 @@ export default function AuthPage({
         height: "100%",
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        background: "var(--bg)"
+        background: "var(--bg)",
       }}
     >
       <div
@@ -94,7 +88,7 @@ export default function AuthPage({
           background: "var(--ink-900)",
           color: "var(--surface)",
           position: "relative",
-          overflow: "hidden"
+          overflow: "hidden",
         }}
       >
         <Wordmark size={20} color="var(--surface)" />
@@ -105,7 +99,7 @@ export default function AuthPage({
             flexDirection: "column",
             justifyContent: "center",
             gap: 18,
-            maxWidth: 420
+            maxWidth: 420,
           }}
         >
           <div className="eyebrow" style={{ color: "var(--acc)" }}>
@@ -118,7 +112,7 @@ export default function AuthPage({
               fontWeight: 500,
               fontSize: 42,
               lineHeight: 1.05,
-              textWrap: "pretty"
+              textWrap: "pretty",
             }}
           >
             Practice harder questions, calmly.
@@ -133,7 +127,7 @@ export default function AuthPage({
             {[
               ["Adaptive runtime", "AI picks 3-12 questions and stops when signal is enough."],
               ["Real voice loop", "Deepgram TTS asks, STT transcribes your answer."],
-              ["Template library", "Save and like community interview templates."]
+              ["Template library", "Save and like community interview templates."],
             ].map(([title, body]) => (
               <div key={title} style={{ display: "flex", gap: 12 }}>
                 <span
@@ -147,7 +141,7 @@ export default function AuthPage({
                     alignItems: "center",
                     justifyContent: "center",
                     flex: "0 0 auto",
-                    marginTop: 1
+                    marginTop: 1,
                   }}
                 >
                   <Icon name="check" size={13} stroke={2.4} />
@@ -170,7 +164,7 @@ export default function AuthPage({
             top: "50%",
             transform: "translateY(-50%)",
             opacity: 0.06,
-            color: "var(--surface)"
+            color: "var(--surface)",
           }}
         >
           <Wave bars={40} max={140} seed={4} />
@@ -182,7 +176,7 @@ export default function AuthPage({
           padding: "48px 64px",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center"
+          justifyContent: "center",
         }}
       >
         <div
@@ -192,7 +186,7 @@ export default function AuthPage({
             marginInline: "auto",
             display: "flex",
             flexDirection: "column",
-            gap: 18
+            gap: 18,
           }}
         >
           <div
@@ -202,7 +196,7 @@ export default function AuthPage({
               padding: 3,
               background: "var(--surface-2)",
               borderRadius: 999,
-              border: "1px solid var(--ink-200)"
+              border: "1px solid var(--ink-200)",
             }}
           >
             <button
@@ -251,7 +245,7 @@ export default function AuthPage({
                 borderColor: "oklch(0.85 0.1 28)",
                 background: "var(--err-soft)",
                 color: "var(--err)",
-                fontSize: 12
+                fontSize: 12,
               }}
             >
               {activeError}

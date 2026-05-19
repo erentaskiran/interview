@@ -20,7 +20,10 @@ export class DeepgramClient {
     }
   }
 
-  async textToSpeech(text: string, voiceModel?: string): Promise<{ audioBase64: string; mimeType: string }> {
+  async textToSpeech(
+    text: string,
+    voiceModel?: string
+  ): Promise<{ audioBase64: string; mimeType: string }> {
     this.ensureEnabled();
 
     const model = voiceModel ?? this.config.ttsModel;
@@ -30,9 +33,9 @@ export class DeepgramClient {
         method: "POST",
         headers: {
           Authorization: this.authHeader!,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text }),
       }
     );
 
@@ -43,7 +46,7 @@ export class DeepgramClient {
     const arrayBuffer = await response.arrayBuffer();
     return {
       audioBase64: Buffer.from(arrayBuffer).toString("base64"),
-      mimeType: response.headers.get("content-type") ?? "audio/mpeg"
+      mimeType: response.headers.get("content-type") ?? "audio/mpeg",
     };
   }
 
@@ -57,9 +60,9 @@ export class DeepgramClient {
         method: "POST",
         headers: {
           Authorization: this.authHeader!,
-          "Content-Type": mimeType
+          "Content-Type": mimeType,
         },
-        body: audioBuffer
+        body: audioBuffer,
       }
     );
 
@@ -73,8 +76,7 @@ export class DeepgramClient {
       };
     };
 
-    const transcript =
-      payload.results?.channels?.[0]?.alternatives?.[0]?.transcript?.trim() ?? "";
+    const transcript = payload.results?.channels?.[0]?.alternatives?.[0]?.transcript?.trim() ?? "";
     if (!transcript) {
       throw new Error("DEEPGRAM_EMPTY_TRANSCRIPT");
     }

@@ -3,28 +3,28 @@ import type { FastifyPluginAsync } from "fastify";
 import {
   answerAdaptiveSession,
   manualFinishSession,
-  startAdaptiveSession
+  startAdaptiveSession,
 } from "../services/session-service.js";
 import { getAuthUserId } from "../utils/auth.js";
 
 const StartSessionSchema = z.object({
-  templateId: z.string().min(1)
+  templateId: z.string().min(1),
 });
 
 const AnswerSessionSchema = z.object({
   answerTranscript: z.string().min(1).optional(),
   answerAudioBase64: z.string().min(1).optional(),
   answerAudioMimeType: z.string().min(1).optional(),
-  answerAudioRef: z.string().min(1).optional()
+  answerAudioRef: z.string().min(1).optional(),
 });
 
 const IdParamSchema = z.object({ id: z.string().min(1) });
 const ListSessionsQuerySchema = z.object({
   status: z.enum(["active", "completed", "failed"]).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(30)
+  limit: z.coerce.number().int().min(1).max(100).default(30),
 });
 const QuestionAudioQuerySchema = z.object({
-  turnIndex: z.coerce.number().int().min(1).optional()
+  turnIndex: z.coerce.number().int().min(1).optional(),
 });
 
 const mapSessionError = (error: unknown) => {
@@ -46,78 +46,70 @@ const mapSessionError = (error: unknown) => {
 };
 
 export const sessionRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.get(
-    "/sessions",
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const parsed = ListSessionsQuerySchema.safeParse(request.query);
-      if (!parsed.success) {
-        return reply.code(400).send({ message: "Invalid query params" });
-      }
+  fastify.get("/sessions", { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const parsed = ListSessionsQuerySchema.safeParse(request.query);
+    if (!parsed.success) {
+      return reply.code(400).send({ message: "Invalid query params" });
+    }
 
-      const where = {
-        userId: getAuthUserId(request),
-        ...(parsed.data.status ? { status: parsed.data.status } : {})
-      };
+    const where = {
+      userId: getAuthUserId(request),
+      ...(parsed.data.status ? { status: parsed.data.status } : {}),
+    };
 
-      const [sessions, totalCount] = await Promise.all([
-        fastify.prisma.interviewSession.findMany({
-          where,
-          orderBy: { createdAt: "desc" },
-          take: parsed.data.limit,
-          include: {
-            template: {
-              select: {
-                id: true,
-                title: true,
-                category: true
-              }
+    const [sessions, totalCount] = await Promise.all([
+      fastify.prisma.interviewSession.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: parsed.data.limit,
+        include: {
+          template: {
+            select: {
+              id: true,
+              title: true,
+              category: true,
             },
-            _count: {
-              select: {
-                turns: true
-              }
-            }
-          }
-        }),
-        fastify.prisma.interviewSession.count({ where })
-      ]);
+          },
+          _count: {
+            select: {
+              turns: true,
+            },
+          },
+        },
+      }),
+      fastify.prisma.interviewSession.count({ where }),
+    ]);
 
-      return { sessions, totalCount };
+    return { sessions, totalCount };
+  });
+
+  fastify.post("/sessions", { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const parsed = StartSessionSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ message: "Invalid payload" });
     }
-  );
 
-  fastify.post(
-    "/sessions",
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const parsed = StartSessionSchema.safeParse(request.body);
-      if (!parsed.success) {
-        return reply.code(400).send({ message: "Invalid payload" });
-      }
+    const template = await fastify.prisma.interviewTemplate.findUnique({
+      where: { id: parsed.data.templateId },
+    });
+    if (!template || !template.isPublic) {
+      return reply.code(404).send({ message: "Template not found" });
+    }
 
-      const template = await fastify.prisma.interviewTemplate.findUnique({
-        where: { id: parsed.data.templateId }
+    try {
+      const started = await startAdaptiveSession({
+        prisma: fastify.prisma,
+        aiProvider: fastify.aiProvider,
+        speechClient: fastify.speechClient,
+        userId: getAuthUserId(request),
+        template,
       });
-      if (!template || !template.isPublic) {
-        return reply.code(404).send({ message: "Template not found" });
-      }
-
-      try {
-        const started = await startAdaptiveSession({
-          prisma: fastify.prisma,
-          aiProvider: fastify.aiProvider,
-          speechClient: fastify.speechClient,
-          userId: getAuthUserId(request),
-          template
-        });
-        return reply.code(201).send(started);
-      } catch (error) {
-        request.log.error(error);
-        return reply.code(502).send({ message: "Failed to initialize interview session" });
-      }
+      return reply.code(201).send(started);
+    } catch (error) {
+      request.log.error(error);
+      return reply.code(502).send({ message: "Failed to initialize interview session" });
     }
-  );
+  });
 
   fastify.post(
     "/sessions/:id/answer",
@@ -134,7 +126,7 @@ export const sessionRoutes: FastifyPluginAsync = async (fastify) => {
         aiProvider: fastify.aiProvider,
         speechClient: fastify.speechClient,
         sessionId: params.data.id,
-        userId: getAuthUserId(request)
+        userId: getAuthUserId(request),
       };
       if (payload.data.answerTranscript !== undefined) {
         input.answerTranscript = payload.data.answerTranscript;
@@ -174,7 +166,7 @@ export const sessionRoutes: FastifyPluginAsync = async (fastify) => {
           prisma: fastify.prisma,
           aiProvider: fastify.aiProvider,
           sessionId: params.data.id,
-          userId: getAuthUserId(request)
+          userId: getAuthUserId(request),
         });
         return { session };
       } catch (error) {
@@ -198,16 +190,16 @@ export const sessionRoutes: FastifyPluginAsync = async (fastify) => {
       const session = await fastify.prisma.interviewSession.findFirst({
         where: {
           id: params.data.id,
-          userId: getAuthUserId(request)
+          userId: getAuthUserId(request),
         },
         include: {
           turns: { orderBy: { turnIndex: "asc" } },
           template: {
             select: {
-              voiceModel: true
-            }
-          }
-        }
+              voiceModel: true,
+            },
+          },
+        },
       });
       if (!session) {
         return reply.code(404).send({ message: "Session not found" });
@@ -235,37 +227,33 @@ export const sessionRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
-  fastify.get(
-    "/sessions/:id",
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const params = IdParamSchema.safeParse(request.params);
-      if (!params.success) {
-        return reply.code(400).send({ message: "Invalid session id" });
-      }
-
-      const session = await fastify.prisma.interviewSession.findFirst({
-        where: {
-          id: params.data.id,
-          userId: getAuthUserId(request)
-        },
-        include: {
-          turns: { orderBy: { turnIndex: "asc" } },
-          template: {
-            select: {
-              id: true,
-              title: true,
-              category: true,
-              voiceModel: true
-            }
-          }
-        }
-      });
-
-      if (!session) {
-        return reply.code(404).send({ message: "Session not found" });
-      }
-      return { session };
+  fastify.get("/sessions/:id", { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const params = IdParamSchema.safeParse(request.params);
+    if (!params.success) {
+      return reply.code(400).send({ message: "Invalid session id" });
     }
-  );
+
+    const session = await fastify.prisma.interviewSession.findFirst({
+      where: {
+        id: params.data.id,
+        userId: getAuthUserId(request),
+      },
+      include: {
+        turns: { orderBy: { turnIndex: "asc" } },
+        template: {
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            voiceModel: true,
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      return reply.code(404).send({ message: "Session not found" });
+    }
+    return { session };
+  });
 };

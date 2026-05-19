@@ -6,12 +6,12 @@ import { getAuthUserId } from "../utils/auth.js";
 const RegisterSchema = z.object({
   email: z.string().email(),
   displayName: z.string().min(2).max(60),
-  password: z.string().min(8).max(100)
+  password: z.string().min(8).max(100),
 });
 
 const LoginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8).max(100)
+  password: z.string().min(8).max(100),
 });
 
 export const authRoutes: FastifyPluginAsync = async (fastify) => {
@@ -25,7 +25,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     const exists = await fastify.prisma.user.findUnique({
-      where: { email: parsed.data.email.toLowerCase() }
+      where: { email: parsed.data.email.toLowerCase() },
     });
     if (exists) {
       return reply.code(409).send({ message: "Email already registered" });
@@ -35,14 +35,14 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       data: {
         email: parsed.data.email.toLowerCase(),
         displayName: parsed.data.displayName,
-        passwordHash: await hashPassword(parsed.data.password)
-      }
+        passwordHash: await hashPassword(parsed.data.password),
+      },
     });
 
     const token = await reply.jwtSign({ sub: user.id, email: user.email });
     return reply.code(201).send({
       token,
-      user: { id: user.id, email: user.email, displayName: user.displayName }
+      user: { id: user.id, email: user.email, displayName: user.displayName },
     });
   });
 
@@ -56,7 +56,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     const user = await fastify.prisma.user.findUnique({
-      where: { email: parsed.data.email.toLowerCase() }
+      where: { email: parsed.data.email.toLowerCase() },
     });
     if (!user) {
       return reply.code(401).send({ message: "Invalid credentials" });
@@ -70,28 +70,24 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     const token = await reply.jwtSign({ sub: user.id, email: user.email });
     return {
       token,
-      user: { id: user.id, email: user.email, displayName: user.displayName }
+      user: { id: user.id, email: user.email, displayName: user.displayName },
     };
   });
 
-  fastify.get(
-    "/auth/me",
-    { preHandler: [fastify.authenticate] },
-    async (request, reply) => {
-      const userId = getAuthUserId(request);
-      const user = await fastify.prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          displayName: true,
-          createdAt: true
-        }
-      });
-      if (!user) {
-        return reply.code(404).send({ message: "User not found" });
-      }
-      return { user };
+  fastify.get("/auth/me", { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const userId = getAuthUserId(request);
+    const user = await fastify.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        createdAt: true,
+      },
+    });
+    if (!user) {
+      return reply.code(404).send({ message: "User not found" });
     }
-  );
+    return { user };
+  });
 };

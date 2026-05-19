@@ -57,7 +57,7 @@ export default function LikedPage({
   onOpenLiked,
   onOpenSessions,
   onOpenSettings,
-  onLogout
+  onLogout,
 }: LikedPageProps) {
   return (
     <div className="page">
@@ -84,7 +84,10 @@ export default function LikedPage({
           }
         />
 
-        <div className="main main--scroll" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div
+          className="main main--scroll"
+          style={{ display: "flex", flexDirection: "column", gap: 12 }}
+        >
           {loading && (
             <div className="card" style={{ padding: 16 }}>
               <div className="small-text">Loading liked templates...</div>
@@ -119,12 +122,12 @@ export default function LikedPage({
                     title: template.title,
                     author: {
                       name: template.author?.displayName ?? "Unknown",
-                      avatarTone: toneByText(template.author?.displayName ?? template.id)
+                      avatarTone: toneByText(template.author?.displayName ?? template.id),
                     },
                     category: template.category,
                     likeCount: template._count?.likes ?? 0,
                     questionRange: [3, 12],
-                    isLiked: liked
+                    isLiked: liked,
                   }}
                   onClick={() => onOpenTemplate(template.id)}
                   onLike={() => {
