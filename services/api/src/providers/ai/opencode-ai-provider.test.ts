@@ -17,18 +17,18 @@ describe("OpenCodeAiProvider", () => {
               message: {
                 content: JSON.stringify({
                   decision: "continue",
-                  reasoning: "Needs another question"
-                })
-              }
-            }
-          ]
-        })
+                  reasoning: "Needs another question",
+                }),
+              },
+            },
+          ],
+        }),
       })
     );
 
     const provider = new OpenCodeAiProvider({
       apiUrl: "http://localhost:9999/v1/chat/completions",
-      apiKey: "test-key"
+      apiKey: "test-key",
     });
 
     await expect(
@@ -46,9 +46,9 @@ describe("OpenCodeAiProvider", () => {
           {
             turnIndex: 1,
             questionText: "Tell me about a system you designed.",
-            answerTranscript: "I designed a queue-backed workflow."
-          }
-        ]
+            answerTranscript: "I designed a queue-backed workflow.",
+          },
+        ],
       })
     ).rejects.toThrow("AI requested continue without next question");
   });
@@ -63,18 +63,18 @@ describe("OpenCodeAiProvider", () => {
               content: JSON.stringify({
                 decision: "continue",
                 reasoning: "Probe tradeoffs",
-                nextQuestion: "What tradeoffs did you make in the queue design?"
-              })
-            }
-          }
-        ]
-      })
+                nextQuestion: "What tradeoffs did you make in the queue design?",
+              }),
+            },
+          },
+        ],
+      }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
     const provider = new OpenCodeAiProvider({
       apiUrl: "http://localhost:9999/v1/chat/completions",
-      apiKey: "test-key"
+      apiKey: "test-key",
     });
 
     await provider.continueInterview({
@@ -91,9 +91,9 @@ describe("OpenCodeAiProvider", () => {
         {
           turnIndex: 1,
           questionText: "Tell me about a system you designed.",
-          answerTranscript: "I designed a queue-backed workflow."
-        }
-      ]
+          answerTranscript: "I designed a queue-backed workflow.",
+        },
+      ],
     });
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body as string) as {
@@ -106,5 +106,48 @@ describe("OpenCodeAiProvider", () => {
     expect(prompt).toContain("specific examples");
     expect(prompt).toContain("Planned coverage:");
     expect(prompt).toContain("tradeoffs");
+  });
+
+  it("normalizes final scoring to an integer score", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  score: "82.7",
+                  feedback: {
+                    strengths: ["Clear examples"],
+                    weakAreas: ["Needs more metrics"],
+                    suggestions: ["Quantify impact"],
+                    summary: "Good signal from a partial interview.",
+                  },
+                }),
+              },
+            },
+          ],
+        }),
+      })
+    );
+
+    const provider = new OpenCodeAiProvider({
+      apiUrl: "http://localhost:9999/v1/chat/completions",
+      apiKey: "test-key",
+    });
+
+    const result = await provider.finalizeInterview({
+      completionReason: "user_stopped",
+      turns: [
+        { turnIndex: 1, questionText: "Q1", answerTranscript: "A1" },
+        { turnIndex: 2, questionText: "Q2", answerTranscript: "A2" },
+        { turnIndex: 3, questionText: "Q3", answerTranscript: "A3" },
+      ],
+    });
+
+    expect(result.score).toBe(83);
+    expect(result.feedback.strengths).toEqual(["Clear examples"]);
   });
 });

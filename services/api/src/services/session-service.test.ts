@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { answerAdaptiveSession } from "./session-service.js";
+import { answerAdaptiveSession, manualFinishSession } from "./session-service.js";
 import type { AiInterviewProvider } from "../providers/ai/types.js";
 
 describe("answerAdaptiveSession", () => {
@@ -27,7 +27,7 @@ describe("answerAdaptiveSession", () => {
         category: "Engineering",
         description: "Backend engineering interview",
         systemInstruction: "Ask adaptive questions",
-        voiceModel: "aura-2-thalia-en"
+        voiceModel: "aura-2-thalia-en",
       },
       turns: [
         {
@@ -40,41 +40,41 @@ describe("answerAdaptiveSession", () => {
           questionAudioRef: null,
           aiDecisionMetadata: null,
           createdAt: now,
-          updatedAt: now
-        }
-      ]
+          updatedAt: now,
+        },
+      ],
     };
 
     const answeredTurn = {
       ...session.turns[0],
-      answerTranscript: "I designed a queue-backed workflow."
+      answerTranscript: "I designed a queue-backed workflow.",
     };
 
     const prisma = {
       interviewSession: {
         findFirst: vi.fn().mockResolvedValue(session),
-        update: vi.fn().mockResolvedValue({ ...session, status: "failed" })
+        update: vi.fn().mockResolvedValue({ ...session, status: "failed" }),
       },
       interviewTurn: {
         update: vi.fn().mockResolvedValue(answeredTurn),
         findMany: vi.fn().mockResolvedValue([answeredTurn]),
-        create: vi.fn()
-      }
+        create: vi.fn(),
+      },
     };
 
     const aiProvider = {
       continueInterview: vi.fn().mockResolvedValue({
         decision: "continue",
-        reasoning: "Needs more depth"
+        reasoning: "Needs more depth",
       }),
       startInterview: vi.fn(),
       finalizeInterview: vi.fn(),
-      generateTemplate: vi.fn()
+      generateTemplate: vi.fn(),
     } as unknown as AiInterviewProvider;
 
     const speechClient = {
       speechToText: vi.fn(),
-      textToSpeech: vi.fn()
+      textToSpeech: vi.fn(),
     };
 
     await expect(
@@ -84,7 +84,7 @@ describe("answerAdaptiveSession", () => {
         speechClient: speechClient as never,
         sessionId: "session-1",
         userId: "user-1",
-        answerTranscript: "I designed a queue-backed workflow."
+        answerTranscript: "I designed a queue-backed workflow.",
       })
     ).rejects.toThrow("AI_NEXT_QUESTION_REQUIRED");
 
@@ -94,14 +94,108 @@ describe("answerAdaptiveSession", () => {
       data: {
         status: "failed",
         completionReason: "failed",
-        completedAt: expect.any(Date)
-      }
+        completedAt: expect.any(Date),
+      },
     });
     expect(aiProvider.continueInterview).toHaveBeenCalledWith(
       expect.objectContaining({
         templateTitle: "Engineering Interview",
         rubric: { depth: "specific examples" },
-        plannedCoverage: ["scope", "tradeoffs"]
+        plannedCoverage: ["scope", "tradeoffs"],
+      })
+    );
+  });
+});
+
+describe("manualFinishSession", () => {
+  it("rounds final scores before persisting completed sessions", async () => {
+    const now = new Date();
+    const session = {
+      id: "session-1",
+      userId: "user-1",
+      templateId: "template-1",
+      status: "active",
+      minQuestionCount: 3,
+      maxQuestionCount: 12,
+      plannedQuestionCount: 5,
+      rubric: {},
+      plannedCoverage: [],
+      createdAt: now,
+      updatedAt: now,
+      completedAt: null,
+      completionReason: null,
+      score: null,
+      feedback: null,
+      template: {
+        id: "template-1",
+        title: "Engineering Interview",
+        category: "Engineering",
+        description: "Backend engineering interview",
+        systemInstruction: "Ask adaptive questions",
+        voiceModel: "aura-2-thalia-en",
+      },
+      turns: [
+        {
+          id: "turn-1",
+          sessionId: "session-1",
+          turnIndex: 1,
+          questionText: "Tell me about a backend system you designed.",
+          answerTranscript: "I designed a queue-backed workflow.",
+          answerAudioRef: null,
+          questionAudioRef: null,
+          aiDecisionMetadata: null,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+    };
+
+    const prisma = {
+      interviewSession: {
+        findFirst: vi.fn().mockResolvedValue(session),
+        update: vi.fn().mockResolvedValue({ ...session, status: "completed", score: 79 }),
+      },
+    };
+
+    const aiProvider = {
+      continueInterview: vi.fn(),
+      startInterview: vi.fn(),
+      finalizeInterview: vi.fn().mockResolvedValue({
+        score: 78.6,
+        feedback: {
+          strengths: ["Clear examples"],
+          weakAreas: ["Needs more metrics"],
+          suggestions: ["Quantify impact"],
+          summary: "Good signal.",
+        },
+      }),
+      generateTemplate: vi.fn(),
+    } as unknown as AiInterviewProvider;
+
+    await manualFinishSession({
+      prisma: prisma as never,
+      aiProvider,
+      sessionId: "session-1",
+      userId: "user-1",
+    });
+
+    expect(aiProvider.finalizeInterview).toHaveBeenCalledWith({
+      completionReason: "user_stopped",
+      turns: [
+        {
+          turnIndex: 1,
+          questionText: "Tell me about a backend system you designed.",
+          answerTranscript: "I designed a queue-backed workflow.",
+        },
+      ],
+    });
+    expect(prisma.interviewSession.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "completed",
+          score: 79,
+          completionReason: "user_stopped",
+        }),
       })
     );
   });

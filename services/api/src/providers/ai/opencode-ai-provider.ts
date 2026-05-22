@@ -28,6 +28,16 @@ interface ChatCompletionResponse {
   choices?: ChatCompletionChoice[];
 }
 
+interface RawSessionResult {
+  score?: unknown;
+  feedback?: {
+    strengths?: unknown;
+    weakAreas?: unknown;
+    suggestions?: unknown;
+    summary?: unknown;
+  };
+}
+
 const extractJsonObject = <T>(raw: string): T => {
   const trimmed = raw.trim();
   try {
@@ -45,32 +55,54 @@ const extractJsonObject = <T>(raw: string): T => {
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
+const parseScore = (value: unknown) => {
+  const score = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
+  if (!Number.isFinite(score)) {
+    throw new Error("Malformed AI final scoring payload");
+  }
+  return Math.round(clamp(score, 0, 100));
+};
+
+const parseStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
+    throw new Error("Malformed AI final scoring payload");
+  }
+  return value as string[];
+};
+
 export class OpenCodeAiProvider implements AiInterviewProvider {
   constructor(private readonly config: OpenCodeConfig) {}
 
   private async callModel(prompt: string): Promise<string> {
     const model = this.config.model ?? "deepseek-v4-flash";
-    const response = await fetch(this.config.apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: "system",
-            content: "Return strictly valid JSON only.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.2,
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(this.config.apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: "system",
+              content: "Return strictly valid JSON only.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          temperature: 0.2,
+        }),
+      });
+    } catch (error) {
+      throw new Error(`OpenCode request failed: could not connect to ${this.config.apiUrl}`, {
+        cause: error,
+      });
+    }
 
     if (!response.ok) {
       const body = await response.text().catch(() => "");
@@ -172,21 +204,28 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
 
     const userPrompt = `User request: ${prompt}`;
 
-    const response = await fetch(this.config.apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.config.model ?? "deepseek-v4-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.5,
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(this.config.apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: this.config.model ?? "deepseek-v4-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.5,
+        }),
+      });
+    } catch (error) {
+      throw new Error(`OpenCode request failed: could not connect to ${this.config.apiUrl}`, {
+        cause: error,
+      });
+    }
 
     if (!response.ok) {
       const body = await response.text().catch(() => "");
@@ -223,25 +262,28 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
     const prompt = [
       "You are generating final interview scoring.",
       "Return ONLY valid JSON with keys: score, feedback.",
+      "score must be an integer from 0 to 100.",
       "feedback must include strengths, weakAreas, suggestions, summary.",
+      "strengths, weakAreas, and suggestions must be arrays of strings; summary must be a string.",
       `Completion reason: ${input.completionReason}`,
       `Turns: ${JSON.stringify(input.turns)}`,
     ].join("\n");
 
     const raw = await this.callModel(prompt);
-    const parsed = extractJsonObject<SessionResult>(raw);
+    const parsed = extractJsonObject<RawSessionResult>(raw);
 
-    if (
-      typeof parsed.score !== "number" ||
-      !parsed.feedback ||
-      !Array.isArray(parsed.feedback.strengths) ||
-      !Array.isArray(parsed.feedback.weakAreas) ||
-      !Array.isArray(parsed.feedback.suggestions) ||
-      typeof parsed.feedback.summary !== "string"
-    ) {
+    if (!parsed.feedback || typeof parsed.feedback.summary !== "string") {
       throw new Error("Malformed AI final scoring payload");
     }
 
-    return parsed;
+    return {
+      score: parseScore(parsed.score),
+      feedback: {
+        strengths: parseStringList(parsed.feedback.strengths),
+        weakAreas: parseStringList(parsed.feedback.weakAreas),
+        suggestions: parseStringList(parsed.feedback.suggestions),
+        summary: parsed.feedback.summary,
+      },
+    } satisfies SessionResult;
   }
 }

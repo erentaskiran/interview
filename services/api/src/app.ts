@@ -22,6 +22,9 @@ export const buildApp = () => {
   void app.register(cors, {
     origin: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allowedHeaders: ["Authorization", "Content-Type", "Accept"],
+    exposedHeaders: ["Content-Type"],
+    optionsSuccessStatus: 204,
   });
   void app.register(prismaPlugin);
   void app.register(authPlugin, { jwtSecret: env.JWT_SECRET });

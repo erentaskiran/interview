@@ -9,9 +9,13 @@ const EnvSchema = z.object({
   BODY_LIMIT_MB: z.coerce.number().int().min(1).max(200).default(50),
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(16),
+  AI_PROVIDER: z.enum(["mock", "opencode"]).default("opencode"),
   OPENCODE_API_URL: z.string().url(),
   OPENCODE_API_KEY: z.string().min(1),
-  OPENCODE_MODEL: z.string().optional(),
+  OPENCODE_MODEL: z
+    .string()
+    .optional()
+    .transform((value) => value || undefined),
   SPEECH_SERVICE_URL: z.string().url().default("http://localhost:4001"),
 });
 

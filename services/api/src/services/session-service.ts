@@ -15,6 +15,13 @@ export const MAX_QUESTIONS = 12;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
+const normalizeScore = (score: number) => {
+  if (!Number.isFinite(score)) {
+    throw new Error("Malformed AI final scoring payload");
+  }
+  return Math.round(clamp(score, 0, 100));
+};
+
 const answeredTurns = (turns: InterviewTurn[]) =>
   turns
     .filter((turn) => Boolean(turn.answerTranscript))
@@ -61,7 +68,7 @@ const finalizeSession = async ({
     data: {
       status: "completed",
       completionReason,
-      score: result.score,
+      score: normalizeScore(result.score),
       feedback: result.feedback as unknown as Prisma.InputJsonValue,
       completedAt: new Date(),
     },
@@ -272,8 +279,12 @@ export const answerAdaptiveSession = async ({
     }
   }
 
-  const nextQuestion =
-    decision.nextQuestion ?? "Can you expand on your previous answer with a concrete example?";
+  if (!decision.nextQuestion) {
+    await markSessionFailed(prisma, session.id);
+    throw new Error("AI_NEXT_QUESTION_REQUIRED");
+  }
+
+  const nextQuestion = decision.nextQuestion;
 
   const nextQuestionAudio = await synthesizeQuestionAudio(
     speechClient,

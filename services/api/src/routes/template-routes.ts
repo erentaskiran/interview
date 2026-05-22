@@ -12,6 +12,9 @@ const hasPrismaCode = (error: unknown, code: string) =>
     "code" in error &&
     (error as { code?: unknown }).code === code);
 
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Unknown error";
+
 const CreateTemplateSchema = z.object({
   title: z.string().min(3).max(140),
   category: z.string().min(2).max(80),
@@ -58,8 +61,19 @@ export const templateRoutes: FastifyPluginAsync = async (fastify) => {
       try {
         const generated = await fastify.aiProvider.generateTemplate(body.data.prompt);
         return reply.code(200).send(generated);
-      } catch {
-        return reply.code(502).send({ message: "AI generation failed" });
+      } catch (error) {
+        const detail = getErrorMessage(error);
+        request.log.error({ err: error }, "AI template generation failed");
+
+        if (detail.includes("could not connect") || detail.includes("fetch failed")) {
+          return reply.code(503).send({
+            message:
+              "AI service unavailable. Check OPENCODE_API_URL and make sure the AI server is running.",
+            detail,
+          });
+        }
+
+        return reply.code(502).send({ message: "AI generation failed", detail });
       }
     }
   );
