@@ -67,7 +67,7 @@ const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
-    day: "numeric"
+    day: "numeric",
   });
 
 const sessionStatusLabel = (status: Session["status"]) => {
@@ -99,7 +99,7 @@ export default function ProfilePage({
   onOpenSettings,
   onLogout,
   onLikeToggle,
-  likedTemplateIds
+  likedTemplateIds,
 }: ProfilePageProps) {
   const isSelf = profile?.user.id === viewer.id;
   const templates =
@@ -129,7 +129,10 @@ export default function ProfilePage({
           onLogout={onLogout}
         />
 
-        <div className="main main--scroll" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div
+          className="main main--scroll"
+          style={{ display: "flex", flexDirection: "column", gap: 16 }}
+        >
           {loading && (
             <div className="card" style={{ padding: 16 }}>
               <div className="small-text">Loading profile...</div>
@@ -149,15 +152,16 @@ export default function ProfilePage({
 
           {profile && (
             <>
-              <div className="card" style={{ padding: 20, display: "flex", alignItems: "center", gap: 16 }}>
+              <div
+                className="card"
+                style={{ padding: 20, display: "flex", alignItems: "center", gap: 16 }}
+              >
                 <Avatar name={initials(profile.user.displayName)} size="xl" tone="a" />
                 <div style={{ minWidth: 0 }}>
                   <div className="h2" style={{ fontWeight: 500 }}>
                     {profile.user.displayName}
                   </div>
-                  <div className="small-text">
-                    Joined {formatDate(profile.user.createdAt)}
-                  </div>
+                  <div className="small-text">Joined {formatDate(profile.user.createdAt)}</div>
                   <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
                     <Chip dot>Templates {profile.user._count.templates}</Chip>
                     <Chip dot>Followers {profile.user._count.followers}</Chip>
@@ -258,7 +262,7 @@ export default function ProfilePage({
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: 14
+                    gap: 14,
                   }}
                 >
                   {templates.map((template) => {
@@ -270,12 +274,12 @@ export default function ProfilePage({
                           id: template.id,
                           title: template.title,
                           author: {
-                            name: template.author?.displayName ?? profile.user.displayName
+                            name: template.author?.displayName ?? profile.user.displayName,
                           },
                           category: template.category,
                           likeCount: template._count?.likes ?? 0,
                           questionRange: [3, 12],
-                          isLiked: liked
+                          isLiked: liked,
                         }}
                         onClick={() => onOpenTemplate(template.id)}
                         onLike={() => {

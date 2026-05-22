@@ -4,15 +4,16 @@ import { DeepgramClient } from "../clients/deepgram-client.js";
 
 const TtsSchema = z.object({
   text: z.string().min(1).max(5000),
-  voiceModel: z.string().min(1).max(120).optional()
+  voiceModel: z.string().min(1).max(120).optional(),
 });
 
 const SttSchema = z.object({
   audioBase64: z.string().min(1),
-  mimeType: z.string().min(1)
+  mimeType: z.string().min(1),
 });
 
-export const speechRoutes = (deepgramClient: DeepgramClient): FastifyPluginAsync =>
+export const speechRoutes =
+  (deepgramClient: DeepgramClient): FastifyPluginAsync =>
   async (fastify) => {
     fastify.post("/tts", async (request, reply) => {
       const parsed = TtsSchema.safeParse(request.body);

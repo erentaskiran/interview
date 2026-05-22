@@ -38,7 +38,7 @@ const formatDateTime = (value: string) =>
     month: "short",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   });
 
 const statusChipKind = (status: Session["status"]) => {
@@ -75,7 +75,7 @@ export default function SessionsPage({
   onOpenLiked,
   onOpenSessions,
   onOpenSettings,
-  onLogout
+  onLogout,
 }: SessionsPageProps) {
   return (
     <div className="page">
@@ -102,7 +102,10 @@ export default function SessionsPage({
           }
         />
 
-        <div className="main main--scroll" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div
+          className="main main--scroll"
+          style={{ display: "flex", flexDirection: "column", gap: 12 }}
+        >
           {loading && (
             <div className="card" style={{ padding: 16 }}>
               <div className="small-text">Loading sessions...</div>
@@ -129,11 +132,15 @@ export default function SessionsPage({
           {sessions.map((session) => {
             const templateTitle =
               typeof session.template === "object" && session.template
-                ? ("title" in session.template ? session.template.title : "Template")
+                ? "title" in session.template
+                  ? session.template.title
+                  : "Template"
                 : "Template";
             const templateCategory =
               typeof session.template === "object" && session.template
-                ? ("category" in session.template ? session.template.category : "")
+                ? "category" in session.template
+                  ? session.template.category
+                  : ""
                 : "";
             return (
               <div
@@ -147,7 +154,7 @@ export default function SessionsPage({
                   gridTemplateColumns: "1fr auto",
                   gap: 12,
                   alignItems: "center",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
                 onClick={() => onOpenSession(session.id)}
                 onKeyDown={(event) => {

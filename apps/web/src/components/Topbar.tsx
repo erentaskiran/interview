@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { Avatar } from "./Avatar";
 import { Icon, IconBtn } from "./Icon";
 
@@ -38,27 +39,29 @@ export function Topbar({
   onOpenLiked,
   onOpenSessions,
   onOpenSettings,
-  onLogout
+  onLogout,
 }: TopbarProps) {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   const menuRef = useRef<HTMLDivElement | null>(null);
   const bellRef = useRef<HTMLDivElement | null>(null);
-  const submitSearch = (query: string) => {
-    if (onSearch) {
-      onSearch(query);
-      return;
-    }
-    window.location.assign(`/discover?q=${encodeURIComponent(query)}`);
-  };
-  const openDiscover = () => {
-    if (onDiscoverTemplates) {
-      onDiscoverTemplates();
-      return;
-    }
-    window.location.assign("/discover");
-  };
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearchSubmit = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        const trimmed = searchQuery.trim();
+        if (trimmed) {
+          navigate(`/discover?q=${encodeURIComponent(trimmed)}`);
+        } else {
+          navigate("/discover");
+        }
+      }
+    },
+    [navigate, searchQuery]
+  );
 
   const menuItems = useMemo(
     () =>
@@ -73,11 +76,16 @@ export function Topbar({
           ? { id: "sessions", label: "Sessions", icon: "headset" as const, onClick: onOpenSessions }
           : null,
         onOpenSettings
-          ? { id: "settings", label: "Settings", icon: "settings" as const, onClick: onOpenSettings }
+          ? {
+              id: "settings",
+              label: "Settings",
+              icon: "settings" as const,
+              onClick: onOpenSettings,
+            }
           : null,
         onLogout
           ? { id: "logout", label: "Logout", icon: "close" as const, onClick: onLogout }
-          : null
+          : null,
       ].filter(Boolean) as Array<{
         id: string;
         label: string;
@@ -103,6 +111,17 @@ export function Topbar({
     return () => {
       window.removeEventListener("pointerdown", onPointerDown);
     };
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (
@@ -150,29 +169,17 @@ export function Topbar({
         <form
           className="top__search"
           style={{ marginLeft: crumb || title ? 24 : 0 }}
-          onSubmit={(event) => {
-            event.preventDefault();
-            const query = searchValue.trim();
-            if (query) {
-              submitSearch(query);
-            }
-          }}
+          onClick={() => searchInputRef.current?.focus()}
         >
           <Icon name="search" size={14} />
           <input
-            value={searchValue}
-            onChange={(event) => setSearchValue(event.target.value)}
-            placeholder="Search templates..."
-            aria-label="Search templates"
-            style={{
-              minWidth: 0,
-              flex: 1,
-              border: 0,
-              outline: 0,
-              background: "transparent",
-              color: "var(--ink-800)",
-              font: "inherit"
-            }}
+            ref={searchInputRef}
+            type="text"
+            className="top__search-input"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchSubmit}
+            placeholder="Search templates, prompts, people…"
           />
           <span className="top__kbd">⌘K</span>
         </form>
@@ -221,7 +228,7 @@ export function Topbar({
                   className="top__menu__item"
                   onClick={() => {
                     setBellOpen(false);
-                    openDiscover();
+                    onDiscoverTemplates?.();
                   }}
                 >
                   <Icon name="compass" size={14} />

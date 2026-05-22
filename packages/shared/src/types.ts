@@ -10,7 +10,7 @@ export const TEMPLATE_VOICE_OPTIONS = [
   { value: "aura-2-thalia-en", label: "Thalia" },
   { value: "aura-2-andromeda-en", label: "Andromeda" },
   { value: "aura-2-helena-en", label: "Helena" },
-  { value: "aura-2-apollo-en", label: "Apollo" }
+  { value: "aura-2-apollo-en", label: "Apollo" },
 ] as const;
 
 export type TemplateVoiceModel = (typeof TEMPLATE_VOICE_OPTIONS)[number]["value"];

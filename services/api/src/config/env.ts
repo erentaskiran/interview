@@ -12,7 +12,7 @@ const EnvSchema = z.object({
   OPENCODE_API_URL: z.string().url(),
   OPENCODE_API_KEY: z.string().min(1),
   OPENCODE_MODEL: z.string().optional(),
-  SPEECH_SERVICE_URL: z.string().url().default("http://localhost:4001")
+  SPEECH_SERVICE_URL: z.string().url().default("http://localhost:4001"),
 });
 
 export type AppEnv = z.infer<typeof EnvSchema>;

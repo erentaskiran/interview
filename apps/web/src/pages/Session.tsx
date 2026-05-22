@@ -105,7 +105,7 @@ export default function SessionPage({
   onOpenSessions,
   onOpenSettings,
   onDiscoverTemplates,
-  onLogout
+  onLogout,
 }: SessionPageProps) {
   const [answerText, setAnswerText] = useState("");
   const [recorderState, setRecorderState] = useState<AudioRecorderState>("idle");
@@ -172,13 +172,11 @@ export default function SessionPage({
             : "Partial signal; iterate once more"),
       strengths: strengths.length > 0 ? strengths : ["No strengths returned by AI."],
       improvements:
-        improvements.length > 0
-          ? improvements
-          : ["No detailed improvements returned by AI."],
+        improvements.length > 0 ? improvements : ["No detailed improvements returned by AI."],
       questionCount: answeredCount,
       duration: msToDuration(ended - started),
       templateTitle: session.template?.title ?? "Interview",
-      templateCategory: session.template?.category ?? "Interview"
+      templateCategory: session.template?.category ?? "Interview",
     };
   }, [answeredCount, feedback, session]);
 
@@ -360,7 +358,7 @@ export default function SessionPage({
     pendingTurn,
     pendingTurnId,
     playQuestionAudio,
-    stopAllPlayback
+    stopAllPlayback,
   ]);
 
   const handlePlayQuestion = async () => {
@@ -480,7 +478,7 @@ export default function SessionPage({
       const base64 = await toBase64(recordedBlob);
       await onSubmitAnswer({
         answerAudioBase64: base64,
-        answerAudioMimeType: recordedMimeType
+        answerAudioMimeType: recordedMimeType,
       });
       setRecorderState("idle");
       setRecordedBlob(null);
@@ -563,7 +561,10 @@ export default function SessionPage({
           }
         />
 
-        <div className="main main--scroll" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div
+          className="main main--scroll"
+          style={{ display: "flex", flexDirection: "column", gap: 14 }}
+        >
           {loading && (
             <div className="card" style={{ padding: 16 }}>
               <div className="small-text">Loading session...</div>
@@ -590,7 +591,10 @@ export default function SessionPage({
 
           {session && isInteractiveSession && (
             <>
-              <div className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div
+                className="card"
+                style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}
+              >
                 <SessionProgress
                   current={questionIndex}
                   plannedTotal={session.plannedQuestionCount}
@@ -646,7 +650,7 @@ export default function SessionPage({
                   flexDirection: "column",
                   gap: 12,
                   maxHeight: 420,
-                  overflowY: "auto"
+                  overflowY: "auto",
                 }}
               >
                 {session.turns.map((turn) => (
@@ -663,7 +667,7 @@ export default function SessionPage({
                             display: "flex",
                             alignItems: "center",
                             gap: 8,
-                            justifyContent: "flex-end"
+                            justifyContent: "flex-end",
                           }}
                         >
                           <span className="micro-text">You</span>
@@ -676,7 +680,10 @@ export default function SessionPage({
                 ))}
               </div>
 
-              <div className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div
+                className="card"
+                style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}
+              >
                 <div className="h3" style={{ fontWeight: 500 }}>
                   Answer by text
                 </div>

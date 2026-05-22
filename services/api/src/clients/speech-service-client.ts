@@ -16,8 +16,8 @@ export class SpeechServiceClient {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text,
-        ...(voiceModel ? { voiceModel } : {})
-      })
+        ...(voiceModel ? { voiceModel } : {}),
+      }),
     });
     if (!response.ok) {
       throw new Error(`Speech TTS failed with status ${response.status}`);
@@ -29,7 +29,7 @@ export class SpeechServiceClient {
     const response = await fetch(`${this.config.baseUrl}/stt`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ audioBase64, mimeType })
+      body: JSON.stringify({ audioBase64, mimeType }),
     });
     if (!response.ok) {
       throw new Error(`Speech STT failed with status ${response.status}`);

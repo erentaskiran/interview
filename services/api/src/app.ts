@@ -13,7 +13,7 @@ import { sessionRoutes } from "./routes/session-routes.js";
 export const buildApp = () => {
   const app = Fastify({
     logger: env.NODE_ENV !== "test",
-    bodyLimit: env.BODY_LIMIT_MB * 1024 * 1024
+    bodyLimit: env.BODY_LIMIT_MB * 1024 * 1024,
   });
 
   app.decorate("aiProvider", createAiProvider(env));
@@ -21,7 +21,7 @@ export const buildApp = () => {
 
   void app.register(cors, {
     origin: true,
-    methods: ["GET", "HEAD", "POST", "DELETE"]
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
   });
   void app.register(prismaPlugin);
   void app.register(authPlugin, { jwtSecret: env.JWT_SECRET });

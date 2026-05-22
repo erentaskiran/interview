@@ -57,7 +57,7 @@ export default function TemplateDetailPage({
   onOpenLiked,
   onOpenSessions,
   onOpenSettings,
-  onLogout
+  onLogout,
 }: TemplateDetailPageProps) {
   const authorName = template?.author?.displayName ?? "Unknown";
   const authorId = template?.author?.id ?? null;
@@ -131,7 +131,7 @@ export default function TemplateDetailPage({
                     style={{
                       fontSize: 34,
                       fontWeight: 500,
-                      textWrap: "balance"
+                      textWrap: "balance",
                     }}
                   >
                     {template.title}
@@ -142,7 +142,7 @@ export default function TemplateDetailPage({
                       alignItems: "center",
                       gap: 12,
                       marginTop: 14,
-                      color: "var(--ink-600)"
+                      color: "var(--ink-600)",
                     }}
                   >
                     <Avatar name={initials(authorName)} tone="d" size="sm" />
@@ -159,9 +159,7 @@ export default function TemplateDetailPage({
                       {authorName}
                     </button>
                     <span className="micro-text">·</span>
-                    <span className="micro-text">
-                      {template._count?.likes ?? 0} likes
-                    </span>
+                    <span className="micro-text">{template._count?.likes ?? 0} likes</span>
                   </div>
                 </div>
 
@@ -196,10 +194,13 @@ export default function TemplateDetailPage({
               gap: 16,
               position: "sticky",
               top: 0,
-              alignSelf: "flex-start"
+              alignSelf: "flex-start",
             }}
           >
-            <div className="card" style={{ padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div
+              className="card"
+              style={{ padding: 18, display: "flex", flexDirection: "column", gap: 14 }}
+            >
               <div>
                 <div className="eyebrow" style={{ marginBottom: 6 }}>
                   Adaptive session
@@ -214,7 +215,14 @@ export default function TemplateDetailPage({
               <div className="bar is-acc">
                 <i style={{ width: "45%" }} />
               </div>
-              <Button kind="primary" size="lg" block icon="play" iconRight="arrow" onClick={onStartInterview}>
+              <Button
+                kind="primary"
+                size="lg"
+                block
+                icon="play"
+                iconRight="arrow"
+                onClick={onStartInterview}
+              >
                 Start interview
               </Button>
               <div style={{ display: "flex", gap: 8 }}>

@@ -21,11 +21,7 @@ export type TemplateCardProps = {
 export function TemplateCard({ template, onLike, onClick, onDetails }: TemplateCardProps) {
   const category = template.category.toLowerCase();
   const chipKind =
-    category === "engineering"
-      ? "accent"
-      : category === "product"
-        ? "ok"
-      : undefined;
+    category === "engineering" ? "accent" : category === "product" ? "ok" : undefined;
 
   const initials = template.author.name
     .split(" ")

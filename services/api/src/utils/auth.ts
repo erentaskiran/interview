@@ -5,8 +5,6 @@ type JwtLikeUser = {
   email?: string;
 };
 
-export const getAuthUser = (request: FastifyRequest): JwtLikeUser =>
-  request.user as JwtLikeUser;
+export const getAuthUser = (request: FastifyRequest): JwtLikeUser => request.user as JwtLikeUser;
 
-export const getAuthUserId = (request: FastifyRequest): string =>
-  getAuthUser(request).sub;
+export const getAuthUserId = (request: FastifyRequest): string => getAuthUser(request).sub;

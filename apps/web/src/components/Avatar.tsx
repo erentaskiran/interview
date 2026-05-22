@@ -8,9 +8,7 @@ type AvatarProps = {
 };
 
 export function Avatar({ name = "AB", tone = "a", size = "md", style }: AvatarProps) {
-  const cls = [`av`, `av--${tone}`, size !== "md" ? `av--${size}` : ""]
-    .filter(Boolean)
-    .join(" ");
+  const cls = [`av`, `av--${tone}`, size !== "md" ? `av--${size}` : ""].filter(Boolean).join(" ");
   return (
     <span className={cls} style={style}>
       {name}

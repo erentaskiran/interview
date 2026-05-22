@@ -34,7 +34,7 @@ export default function SettingsPage({
   onOpenLiked,
   onOpenSessions,
   onOpenSettings,
-  onLogout
+  onLogout,
 }: SettingsPageProps) {
   return (
     <div className="page">
@@ -62,10 +62,13 @@ export default function SettingsPage({
               marginInline: "auto",
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
-              gap: 16
+              gap: 16,
             }}
           >
-            <div className="card" style={{ padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
+            <div
+              className="card"
+              style={{ padding: 18, display: "flex", flexDirection: "column", gap: 12 }}
+            >
               <div className="h2" style={{ fontWeight: 500 }}>
                 Account
               </div>
@@ -75,11 +78,12 @@ export default function SettingsPage({
               <Field label="Email">
                 <Input value={user.email} disabled />
               </Field>
-              <div className="small-text">
-                Profile editing will be added in the next iteration.
-              </div>
+              <div className="small-text">Profile editing will be added in the next iteration.</div>
             </div>
-            <div className="card" style={{ padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
+            <div
+              className="card"
+              style={{ padding: 18, display: "flex", flexDirection: "column", gap: 12 }}
+            >
               <div className="h2" style={{ fontWeight: 500 }}>
                 Session Defaults
               </div>

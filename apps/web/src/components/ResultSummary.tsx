@@ -201,7 +201,6 @@ export function ResultSummary({
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span className="mono" style={{ color: scoreTone, fontSize: 26, fontWeight: 500 }}>
               {score}
-            </span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="bar" style={{ height: 7 }}>
                 <i style={{ width: `${score}%`, background: scoreTone }} />

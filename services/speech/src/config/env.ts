@@ -9,7 +9,7 @@ const EnvSchema = z.object({
   BODY_LIMIT_MB: z.coerce.number().int().min(1).max(200).default(50),
   DEEPGRAM_API_KEY: z.string().optional(),
   DEEPGRAM_TTS_MODEL: z.string().default("aura-2-thalia-en"),
-  DEEPGRAM_STT_MODEL: z.string().default("nova-3")
+  DEEPGRAM_STT_MODEL: z.string().default("nova-3"),
 });
 
 export type SpeechEnv = z.infer<typeof EnvSchema>;

@@ -27,10 +27,10 @@ export const userRoutes: FastifyPluginAsync = async (fastify) => {
           select: {
             followers: true,
             following: true,
-            templates: true
-          }
-        }
-      }
+            templates: true,
+          },
+        },
+      },
     });
     if (!user) {
       return reply.code(404).send({ message: "User not found" });
@@ -51,8 +51,8 @@ export const userRoutes: FastifyPluginAsync = async (fastify) => {
         where: { authorId: user.id, isPublic: true },
         orderBy: { createdAt: "desc" },
         include: {
-          _count: { select: { likes: true } }
-        }
+          _count: { select: { likes: true } },
+        },
       }),
       fastify.prisma.templateLike.findMany({
         where: { userId: user.id },
@@ -61,22 +61,22 @@ export const userRoutes: FastifyPluginAsync = async (fastify) => {
           template: {
             include: {
               author: { select: { id: true, displayName: true } },
-              _count: { select: { likes: true } }
-            }
-          }
-        }
+              _count: { select: { likes: true } },
+            },
+          },
+        },
       }),
       viewerId && viewerId !== user.id
         ? fastify.prisma.userFollow.findUnique({
             where: {
               followerId_followingId: {
                 followerId: viewerId,
-                followingId: user.id
-              }
+                followingId: user.id,
+              },
             },
-            select: { id: true }
+            select: { id: true },
           })
-        : Promise.resolve(null)
+        : Promise.resolve(null),
     ]);
 
     return {
@@ -86,9 +86,9 @@ export const userRoutes: FastifyPluginAsync = async (fastify) => {
       viewer: viewerId
         ? {
             isSelf: viewerId === user.id,
-            isFollowing: Boolean(followRecord)
+            isFollowing: Boolean(followRecord),
           }
-        : undefined
+        : undefined,
     };
   });
 
@@ -109,7 +109,7 @@ export const userRoutes: FastifyPluginAsync = async (fastify) => {
 
       const targetUser = await fastify.prisma.user.findUnique({
         where: { id: followingId },
-        select: { id: true }
+        select: { id: true },
       });
       if (!targetUser) {
         return reply.code(404).send({ message: "User not found" });
@@ -117,7 +117,7 @@ export const userRoutes: FastifyPluginAsync = async (fastify) => {
 
       try {
         await fastify.prisma.userFollow.create({
-          data: { followerId, followingId }
+          data: { followerId, followingId },
         });
       } catch (error) {
         if (hasPrismaCode(error, "P2002")) {
@@ -130,22 +130,18 @@ export const userRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
-  fastify.delete(
-    "/users/:id/follow",
-    { preHandler: [fastify.authenticate] },
-    async (request) => {
-      const params = z.object({ id: z.string().min(1) }).safeParse(request.params);
-      if (!params.success) {
-        return { success: false };
-      }
-
-      await fastify.prisma.userFollow.deleteMany({
-        where: {
-          followerId: getAuthUserId(request),
-          followingId: params.data.id
-        }
-      });
-      return { success: true };
+  fastify.delete("/users/:id/follow", { preHandler: [fastify.authenticate] }, async (request) => {
+    const params = z.object({ id: z.string().min(1) }).safeParse(request.params);
+    if (!params.success) {
+      return { success: false };
     }
-  );
+
+    await fastify.prisma.userFollow.deleteMany({
+      where: {
+        followerId: getAuthUserId(request),
+        followingId: params.data.id,
+      },
+    });
+    return { success: true };
+  });
 };

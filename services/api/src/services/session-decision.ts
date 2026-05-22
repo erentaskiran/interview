@@ -5,14 +5,9 @@ export type DecisionInput = {
   aiDecision: "continue" | "finish";
 };
 
-export type DecisionOutcome =
-  | "finish_by_max_guard"
-  | "finish_by_ai"
-  | "continue";
+export type DecisionOutcome = "finish_by_max_guard" | "finish_by_ai" | "continue";
 
-export const decideAdaptiveTransition = (
-  input: DecisionInput
-): DecisionOutcome => {
+export const decideAdaptiveTransition = (input: DecisionInput): DecisionOutcome => {
   if (input.answeredCount >= input.maxQuestionCount) {
     return "finish_by_max_guard";
   }

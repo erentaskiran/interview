@@ -13,9 +13,12 @@
     "dev:api": "npm run dev -w @ainterview/api",
     "dev:speech": "npm run dev -w @ainterview/speech",
     "dev:web": "npm run dev -w @ainterview/web",
-    "test": "npm run test -w @ainterview/api && npm run test -w @ainterview/web",
+    "test": "npm run test -w @ainterview/api && npm run test -w @ainterview/speech && npm run test -w @ainterview/web",
     "prisma:generate": "npm run prisma:generate -w @ainterview/api",
-    "prisma:migrate": "npm run prisma:migrate -w @ainterview/api"
+    "prisma:migrate": "npm run prisma:migrate -w @ainterview/api",
+    "prisma:migrate:deploy": "npm run prisma:deploy -w @ainterview/api",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "engines": {
     "node": ">=20.0.0"
@@ -23,5 +26,8 @@
   "dependencies": {
     "@fontsource/geist-mono": "^5.2.7",
     "@fontsource/geist-sans": "^5.2.5"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.3"
   }
 }

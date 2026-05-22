@@ -24,7 +24,7 @@ const VOICE_OPTIONS = [
   { value: "aura-2-thalia-en", label: "Thalia" },
   { value: "aura-2-andromeda-en", label: "Andromeda" },
   { value: "aura-2-helena-en", label: "Helena" },
-  { value: "aura-2-apollo-en", label: "Apollo" }
+  { value: "aura-2-apollo-en", label: "Apollo" },
 ] as const;
 
 type TemplateCreatePageProps = {
@@ -71,7 +71,7 @@ export default function TemplateCreatePage({
   onOpenSessions,
   onOpenSettings,
   onLogout,
-  onGenerateTemplate
+  onGenerateTemplate,
 }: TemplateCreatePageProps) {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Engineering");
@@ -111,7 +111,7 @@ export default function TemplateCreatePage({
       category: category.trim(),
       description: description.trim(),
       systemInstruction: systemInstruction.trim(),
-      voiceModel
+      voiceModel,
     });
   };
 
@@ -180,15 +180,22 @@ export default function TemplateCreatePage({
               marginInline: "auto",
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
-              gap: 16
+              gap: 16,
             }}
           >
-            <div className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div
+              className="card"
+              style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}
+            >
               <div className="h2" style={{ fontWeight: 500 }}>
                 Template details
               </div>
               <Field label="Title">
-                <Input value={title} onChange={setTitle} placeholder="Behavioral round for senior IC engineers" />
+                <Input
+                  value={title}
+                  onChange={setTitle}
+                  placeholder="Behavioral round for senior IC engineers"
+                />
               </Field>
               <Field label="Category">
                 <Input value={category} onChange={setCategory} placeholder="Engineering" />
@@ -217,7 +224,10 @@ export default function TemplateCreatePage({
               </Field>
             </div>
 
-            <div className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div
+              className="card"
+              style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}
+            >
               <div className="h2" style={{ fontWeight: 500 }}>
                 AI system instruction
               </div>
@@ -239,7 +249,7 @@ export default function TemplateCreatePage({
                     borderColor: "oklch(0.85 0.1 28)",
                     background: "var(--err-soft)",
                     color: "var(--err)",
-                    fontSize: 12
+                    fontSize: 12,
                   }}
                 >
                   {activeError}
@@ -270,14 +280,15 @@ export default function TemplateCreatePage({
                 display: "flex",
                 flexDirection: "column",
                 gap: 14,
-                gridColumn: "1 / -1"
+                gridColumn: "1 / -1",
               }}
             >
               <div className="h2" style={{ fontWeight: 500 }}>
                 Generate with AI
               </div>
               <div className="small-text" style={{ color: "var(--ink-600)", marginTop: -8 }}>
-                Describe what kind of interview you want, and AI will fill in the fields above automatically.
+                Describe what kind of interview you want, and AI will fill in the fields above
+                automatically.
               </div>
               <Field label="Your request">
                 <textarea
@@ -297,7 +308,7 @@ export default function TemplateCreatePage({
                     borderColor: "oklch(0.85 0.1 28)",
                     background: "var(--err-soft)",
                     color: "var(--err)",
-                    fontSize: 12
+                    fontSize: 12,
                   }}
                 >
                   {activeAiError}
@@ -331,14 +342,17 @@ export default function TemplateCreatePage({
                       borderColor: "var(--ink-200)",
                       display: "flex",
                       flexDirection: "column",
-                      gap: 10
+                      gap: 10,
                     }}
                   >
                     <div>
                       <div className="micro-text upper" style={{ marginBottom: 2 }}>
                         Title
                       </div>
-                      <div className="small-text" style={{ color: "var(--ink-800)", fontWeight: 500 }}>
+                      <div
+                        className="small-text"
+                        style={{ color: "var(--ink-800)", fontWeight: 500 }}
+                      >
                         {generatedPreview.title}
                       </div>
                     </div>
@@ -346,7 +360,10 @@ export default function TemplateCreatePage({
                       <div className="micro-text upper" style={{ marginBottom: 2 }}>
                         Category
                       </div>
-                      <div className="small-text" style={{ color: "var(--ink-800)", fontWeight: 500 }}>
+                      <div
+                        className="small-text"
+                        style={{ color: "var(--ink-800)", fontWeight: 500 }}
+                      >
                         {generatedPreview.category}
                       </div>
                     </div>
@@ -354,7 +371,10 @@ export default function TemplateCreatePage({
                       <div className="micro-text upper" style={{ marginBottom: 2 }}>
                         Description
                       </div>
-                      <div className="small-text" style={{ color: "var(--ink-700)", lineHeight: 1.5 }}>
+                      <div
+                        className="small-text"
+                        style={{ color: "var(--ink-700)", lineHeight: 1.5 }}
+                      >
                         {generatedPreview.description.length > 180
                           ? `${generatedPreview.description.slice(0, 180)}...`
                           : generatedPreview.description}
