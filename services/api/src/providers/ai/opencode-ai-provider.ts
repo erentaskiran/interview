@@ -130,12 +130,20 @@ export class OpenCodeAiProvider implements AiInterviewProvider {
     input: ContinueInterviewInput
   ): Promise<ContinueInterviewResult> {
     const prompt = [
-      "You evaluate interview progress.",
+      "You are an adaptive interviewer deciding the next interview step.",
       "Return ONLY valid JSON with keys: decision, reasoning, nextQuestion.",
       "decision must be continue or finish.",
+      "If decision is continue, nextQuestion is required and must be one concise, specific interview question.",
+      "Do not repeat prior questions. Prefer probing follow-ups that use the candidate's previous answers and the planned coverage.",
+      `Template title: ${input.templateTitle}`,
+      `Category: ${input.templateCategory}`,
+      `Description: ${input.templateDescription}`,
+      `System instruction: ${input.systemInstruction}`,
       `Min questions: ${input.minQuestionCount}`,
       `Max questions: ${input.maxQuestionCount}`,
       `Planned questions: ${input.plannedQuestionCount}`,
+      `Rubric: ${JSON.stringify(input.rubric)}`,
+      `Planned coverage: ${JSON.stringify(input.plannedCoverage)}`,
       `Turns: ${JSON.stringify(input.turns)}`
     ].join("\n");
 

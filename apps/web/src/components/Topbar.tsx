@@ -2,14 +2,21 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Avatar } from "./Avatar";
 import { Icon, IconBtn } from "./Icon";
 
+export type BreadcrumbItem = {
+  label: string;
+  onClick?: () => void;
+};
+
 export type TopbarProps = {
   title?: string;
-  crumb?: string[];
+  crumb?: Array<string | BreadcrumbItem>;
   actions?: ReactNode;
   hideSearch?: boolean;
   userInitials?: string;
   userName?: string;
   userSub?: string;
+  onSearch?: (query: string) => void;
+  onDiscoverTemplates?: () => void;
   onOpenProfile?: () => void;
   onOpenLiked?: () => void;
   onOpenSessions?: () => void;
@@ -25,6 +32,8 @@ export function Topbar({
   userInitials = "AI",
   userName = "User",
   userSub = "",
+  onSearch,
+  onDiscoverTemplates,
   onOpenProfile,
   onOpenLiked,
   onOpenSessions,
@@ -32,7 +41,24 @@ export function Topbar({
   onLogout
 }: TopbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const bellRef = useRef<HTMLDivElement | null>(null);
+  const submitSearch = (query: string) => {
+    if (onSearch) {
+      onSearch(query);
+      return;
+    }
+    window.location.assign(`/discover?q=${encodeURIComponent(query)}`);
+  };
+  const openDiscover = () => {
+    if (onDiscoverTemplates) {
+      onDiscoverTemplates();
+      return;
+    }
+    window.location.assign("/discover");
+  };
 
   const menuItems = useMemo(
     () =>
@@ -69,6 +95,9 @@ export function Topbar({
       if (!menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
       }
+      if (bellRef.current && !bellRef.current.contains(event.target as Node)) {
+        setBellOpen(false);
+      }
     };
     window.addEventListener("pointerdown", onPointerDown);
     return () => {
@@ -88,15 +117,26 @@ export function Topbar({
               {i > 0 && (
                 <Icon name="chevronR" size={12} style={{ color: "var(--ink-400)" }} />
               )}
-              <span
-                style={{
-                  color:
-                    i === crumb.length - 1 ? "var(--ink-900)" : "var(--ink-500)",
-                  fontWeight: i === crumb.length - 1 ? 500 : 400,
-                }}
-              >
-                {c}
-              </span>
+              {(() => {
+                const item = typeof c === "string" ? { label: c } : c;
+                const isCurrent = i === crumb.length - 1;
+                const style = {
+                  color: isCurrent ? "var(--ink-900)" : "var(--ink-500)",
+                  fontWeight: isCurrent ? 500 : 400
+                };
+                return item.onClick && !isCurrent ? (
+                  <button
+                    type="button"
+                    className="small-text"
+                    style={{ ...style, cursor: "pointer" }}
+                    onClick={item.onClick}
+                  >
+                    {item.label}
+                  </button>
+                ) : (
+                  <span style={style}>{item.label}</span>
+                );
+              })()}
             </span>
           ))}
         </span>
@@ -107,14 +147,35 @@ export function Topbar({
         </span>
       )}
       {!hideSearch && (
-        <div
+        <form
           className="top__search"
           style={{ marginLeft: crumb || title ? 24 : 0 }}
+          onSubmit={(event) => {
+            event.preventDefault();
+            const query = searchValue.trim();
+            if (query) {
+              submitSearch(query);
+            }
+          }}
         >
           <Icon name="search" size={14} />
-          <span>Search templates, prompts, people…</span>
+          <input
+            value={searchValue}
+            onChange={(event) => setSearchValue(event.target.value)}
+            placeholder="Search templates..."
+            aria-label="Search templates"
+            style={{
+              minWidth: 0,
+              flex: 1,
+              border: 0,
+              outline: 0,
+              background: "transparent",
+              color: "var(--ink-800)",
+              font: "inherit"
+            }}
+          />
           <span className="top__kbd">⌘K</span>
-        </div>
+        </form>
       )}
       <div
         style={{
@@ -125,7 +186,51 @@ export function Topbar({
         }}
       >
         {actions}
-        <IconBtn name="bell" />
+        <div ref={bellRef} style={{ position: "relative" }}>
+          <IconBtn
+            name="bell"
+            ariaLabel="Notifications"
+            onClick={() => {
+              setBellOpen((current) => !current);
+            }}
+          />
+          {bellOpen && (
+            <div className="top__menu" style={{ right: 0, width: 240 }}>
+              <div className="top__menu__head">
+                <div className="small-text" style={{ color: "var(--ink-800)", fontWeight: 500 }}>
+                  Notifications
+                </div>
+                <div className="micro-text">No new alerts</div>
+              </div>
+              <div className="top__menu__list">
+                {onOpenSessions && (
+                  <button
+                    type="button"
+                    className="top__menu__item"
+                    onClick={() => {
+                      setBellOpen(false);
+                      onOpenSessions();
+                    }}
+                  >
+                    <Icon name="headset" size={14} />
+                    <span>View sessions</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="top__menu__item"
+                  onClick={() => {
+                    setBellOpen(false);
+                    openDiscover();
+                  }}
+                >
+                  <Icon name="compass" size={14} />
+                  <span>Discover templates</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
         <div ref={menuRef} style={{ position: "relative" }}>
           <button
             type="button"

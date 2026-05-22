@@ -3,7 +3,7 @@ import { Button } from "./Button";
 import { Icon, IconBtn } from "./Icon";
 import { Wave } from "./Wave";
 
-export type AudioRecorderState = "idle" | "recording" | "review" | "processing";
+export type AudioRecorderState = "idle" | "recording" | "paused" | "review" | "processing";
 
 export type AudioRecorderProps = {
   state: AudioRecorderState;
@@ -11,6 +11,8 @@ export type AudioRecorderProps = {
   maxSec?: number;
   onStart: () => void;
   onStop: () => void;
+  onPause: () => void;
+  onResume: () => void;
   onSubmit: () => void;
   onPlayback: () => void;
   onReRecord: () => void;
@@ -29,6 +31,8 @@ export function AudioRecorder({
   maxSec = 180,
   onStart,
   onStop,
+  onPause,
+  onResume,
   onSubmit,
   onPlayback,
   onReRecord,
@@ -39,6 +43,8 @@ export function AudioRecorder({
         return "Tap to record your answer";
       case "recording":
         return `Recording · ${formatDuration(durationSec)}`;
+      case "paused":
+        return `Paused · ${formatDuration(durationSec)}`;
       case "processing":
         return "Transcribing…";
       case "review":
@@ -48,7 +54,7 @@ export function AudioRecorder({
     }
   }, [state, durationSec]);
 
-  const isInverted = state === "recording";
+  const isInverted = state === "recording" || state === "paused";
 
   return (
     <div
@@ -71,6 +77,8 @@ export function AudioRecorder({
             background:
               state === "recording"
                 ? "var(--err)"
+                : state === "paused"
+                  ? "var(--acc)"
                 : state === "review"
                   ? "var(--ok)"
                   : state === "processing"
@@ -99,7 +107,7 @@ export function AudioRecorder({
             opacity: isInverted ? 0.6 : 1,
           }}
         >
-          {state === "recording"
+          {state === "recording" || state === "paused"
             ? `${formatDuration(durationSec)} / ${formatDuration(maxSec)}`
             : state === "review"
               ? formatDuration(durationSec)
@@ -123,7 +131,7 @@ export function AudioRecorder({
           bars={48}
           max={32}
           seed={state === "recording" ? 5 : 2}
-          color={state === "recording" ? "var(--acc)" : "var(--ink-400)"}
+          color={state === "recording" || state === "paused" ? "var(--acc)" : "var(--ink-400)"}
           style={{ width: "100%", justifyContent: "space-between" }}
         />
       </div>
@@ -135,20 +143,23 @@ export function AudioRecorder({
           </Button>
         )}
 
-        {state === "recording" && (
+        {(state === "recording" || state === "paused") && (
           <>
             <Button kind="danger" icon="stop" size="lg" block onClick={onStop}>
               Stop
             </Button>
             <button
+              type="button"
               className="btn btn--icon btn--ghost"
               style={{
                 background: "oklch(1 0 0 / 0.08)",
                 borderColor: "oklch(1 0 0 / 0.16)",
                 color: "white",
               }}
+              onClick={state === "recording" ? onPause : onResume}
+              aria-label={state === "recording" ? "Pause recording" : "Resume recording"}
             >
-              <Icon name="pause" size={15} />
+              <Icon name={state === "recording" ? "pause" : "play"} size={15} />
             </button>
           </>
         )}

@@ -233,9 +233,15 @@ export const answerAdaptiveSession = async ({
   let decision: Awaited<ReturnType<AiInterviewProvider["continueInterview"]>>;
   try {
     decision = await aiProvider.continueInterview({
+      templateTitle: session.template.title,
+      templateCategory: session.template.category,
+      templateDescription: session.template.description,
+      systemInstruction: session.template.systemInstruction,
       minQuestionCount: session.minQuestionCount,
       maxQuestionCount: session.maxQuestionCount,
       plannedQuestionCount: session.plannedQuestionCount,
+      rubric: session.rubric,
+      plannedCoverage: session.plannedCoverage,
       turns: contextTurns
     });
   } catch (error) {
@@ -271,9 +277,12 @@ export const answerAdaptiveSession = async ({
     }
   }
 
-  const nextQuestion =
-    decision.nextQuestion ??
-    "Can you expand on your previous answer with a concrete example?";
+  if (!decision.nextQuestion) {
+    await markSessionFailed(prisma, session.id);
+    throw new Error("AI_NEXT_QUESTION_REQUIRED");
+  }
+
+  const nextQuestion = decision.nextQuestion;
 
   const nextQuestionAudio = await synthesizeQuestionAudio(
     speechClient,

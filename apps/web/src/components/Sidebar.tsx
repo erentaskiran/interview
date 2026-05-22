@@ -16,7 +16,7 @@ const navGroups: {
   {
     items: [
       { id: "discover", icon: "compass", label: "Discover", path: "/discover" },
-      { id: "my", icon: "bookmark", label: "My templates", path: "/me?tab=templates" },
+      { id: "my", icon: "bookmark", label: "My templates", path: "/my-templates" },
       { id: "liked", icon: "heart", label: "Liked", path: "/liked" },
       { id: "sessions", icon: "headset", label: "Sessions", path: "/sessions" }
     ],
@@ -105,14 +105,14 @@ export function Sidebar({
           </div>
         </div>
       ))}
-      <div className="side__user">
+      <NavLink className="side__user" to="/me">
         <Avatar name={initials || "U"} tone="a" />
         <div style={{ minWidth: 0 }}>
           <div className="side__user__name">{user.name}</div>
           <div className="side__user__hint">{user.sub || "AInterview"}</div>
         </div>
         <Icon name="chevron" size={14} style={{ marginLeft: "auto", color: "var(--ink-500)" }} />
-      </div>
+      </NavLink>
     </aside>
   );
 }

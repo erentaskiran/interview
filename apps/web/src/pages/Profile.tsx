@@ -1,4 +1,4 @@
-import type { User, Template } from "../types";
+import type { User, Template, Session } from "../types";
 import { Avatar } from "../components/Avatar";
 import { Button } from "../components/Button";
 import { Chip } from "../components/Chip";
@@ -19,6 +19,7 @@ export type ProfileResponse = {
   };
   templates: Template[];
   likedTemplates: Template[];
+  sessions?: Session[];
   viewer?: {
     isSelf: boolean;
     isFollowing: boolean;
@@ -42,6 +43,7 @@ type ProfilePageProps = {
   onTabChange: (tab: ProfileTab) => void;
   onToggleFollow: () => Promise<void>;
   onOpenTemplate: (templateId: string) => void;
+  onOpenSession: (sessionId: string) => void;
   onRetry: () => void;
   onOpenProfile: () => void;
   onOpenLiked: () => void;
@@ -68,6 +70,16 @@ const formatDate = (iso: string) =>
     day: "numeric"
   });
 
+const sessionStatusLabel = (status: Session["status"]) => {
+  if (status === "active") {
+    return "In progress";
+  }
+  if (status === "completed") {
+    return "Completed";
+  }
+  return "Failed";
+};
+
 export default function ProfilePage({
   viewer,
   profile,
@@ -79,6 +91,7 @@ export default function ProfilePage({
   onTabChange,
   onToggleFollow,
   onOpenTemplate,
+  onOpenSession,
   onRetry,
   onOpenProfile,
   onOpenLiked,
@@ -105,7 +118,7 @@ export default function ProfilePage({
       />
       <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
         <Topbar
-          crumb={["Profile", profile?.user.displayName ?? "User"]}
+          crumb={[{ label: "Profile", onClick: onOpenProfile }, profile?.user.displayName ?? "User"]}
           userInitials={initials(viewer.displayName)}
           userName={viewer.displayName}
           userSub={viewer.email}
@@ -190,10 +203,47 @@ export default function ProfilePage({
               </div>
 
               {activeTab === "sessions" && (
-                <div className="card" style={{ padding: 16 }}>
-                  <div className="small-text">
-                    Session history endpoint is not available in this MVP backend yet.
-                  </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {(profile.sessions ?? []).length === 0 && (
+                    <div className="card" style={{ padding: 16 }}>
+                      <div className="small-text">No sessions yet.</div>
+                    </div>
+                  )}
+                  {(profile.sessions ?? []).map((session) => {
+                    const templateTitle =
+                      typeof session.template === "object" && session.template
+                        ? "title" in session.template
+                          ? session.template.title
+                          : "Template"
+                        : "Template";
+                    return (
+                      <button
+                        key={session.id}
+                        className="card"
+                        type="button"
+                        style={{
+                          padding: 14,
+                          display: "grid",
+                          gridTemplateColumns: "1fr auto",
+                          gap: 12,
+                          alignItems: "center",
+                          textAlign: "left",
+                          cursor: "pointer"
+                        }}
+                        onClick={() => onOpenSession(session.id)}
+                      >
+                        <div style={{ minWidth: 0 }}>
+                          <div className="h3" style={{ fontWeight: 500 }}>
+                            {templateTitle}
+                          </div>
+                          <div className="small-text" style={{ marginTop: 4 }}>
+                            {formatDate(session.createdAt)} · {session._count?.turns ?? session.turns?.length ?? 0} turns
+                          </div>
+                        </div>
+                        <Chip dot>{sessionStatusLabel(session.status)}</Chip>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
 
@@ -231,6 +281,7 @@ export default function ProfilePage({
                         onLike={() => {
                           void onLikeToggle(template.id, liked);
                         }}
+                        onDetails={() => onOpenTemplate(template.id)}
                       />
                     );
                   })}

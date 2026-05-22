@@ -19,6 +19,7 @@ type TemplateDetailPageProps = {
     sessions?: number;
   };
   onBack: () => void;
+  onOpenCategory: (category: string) => void;
   onStartInterview: () => void;
   onToggleLike: () => void;
   onRetry: () => void;
@@ -47,6 +48,7 @@ export default function TemplateDetailPage({
   error,
   counts,
   onBack,
+  onOpenCategory,
   onStartInterview,
   onToggleLike,
   onRetry,
@@ -69,7 +71,16 @@ export default function TemplateDetailPage({
       />
       <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
         <Topbar
-          crumb={["Discover", template?.category ?? "Template", template?.title ?? "Detail"]}
+          crumb={[
+            { label: "Discover", onClick: onBack },
+            template
+              ? {
+                  label: template.category,
+                  onClick: () => onOpenCategory(template.category)
+                }
+              : "Template",
+            template?.title ?? "Detail"
+          ]}
           userInitials={initials(user.displayName)}
           userName={user.displayName}
           userSub={user.email}

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { MouseEventHandler, ReactNode } from "react";
 import { Icon, type IconName } from "./Icon";
 
 export type ButtonKind = "primary" | "accent" | "ghost" | "quiet" | "danger";
@@ -12,7 +12,7 @@ export type ButtonProps = {
   disabled?: boolean;
   loading?: boolean;
   children: ReactNode;
-  onClick?: () => void;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
   style?: React.CSSProperties;
   type?: "button" | "submit" | "reset";
 };

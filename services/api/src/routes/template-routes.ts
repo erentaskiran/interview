@@ -83,6 +83,7 @@ export const templateRoutes: FastifyPluginAsync = async (fastify) => {
     if (query.success && query.data.q) {
       where.OR = [
         { title: { contains: query.data.q, mode: "insensitive" } },
+        { category: { contains: query.data.q, mode: "insensitive" } },
         {
           description: {
             contains: query.data.q,

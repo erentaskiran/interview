@@ -51,6 +51,18 @@ const statusChipKind = (status: Session["status"]) => {
   return undefined;
 };
 
+const statusLabel = (status: Session["status"]) => {
+  if (status === "active") {
+    return "In progress";
+  }
+  if (status === "completed") {
+    return "Completed";
+  }
+  return "Failed";
+};
+
+const actionLabel = (status: Session["status"]) => (status === "active" ? "Resume" : "Review");
+
 export default function SessionsPage({
   user,
   sessions,
@@ -127,12 +139,29 @@ export default function SessionsPage({
               <div
                 key={session.id}
                 className="card"
+                role="button"
+                tabIndex={0}
                 style={{
                   padding: 14,
                   display: "grid",
                   gridTemplateColumns: "1fr auto",
                   gap: 12,
-                  alignItems: "center"
+                  alignItems: "center",
+                  cursor: "pointer"
+                }}
+                onClick={() => onOpenSession(session.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    onOpenSession(session.id);
+                  }
+                  if (event.key === " ") {
+                    event.preventDefault();
+                  }
+                }}
+                onKeyUp={(event) => {
+                  if (event.key === " ") {
+                    onOpenSession(session.id);
+                  }
                 }}
               >
                 <div style={{ minWidth: 0 }}>
@@ -151,14 +180,21 @@ export default function SessionsPage({
                   </div>
                   <div style={{ marginTop: 8, display: "inline-flex", gap: 8 }}>
                     <Chip kind={statusChipKind(session.status)} dot>
-                      {session.status}
+                      {statusLabel(session.status)}
                     </Chip>
                     {session.completionReason && <Chip dot>{session.completionReason}</Chip>}
                     {session.score !== null && <Chip dot>Score {session.score}</Chip>}
                   </div>
                 </div>
-                <Button kind="primary" size="sm" onClick={() => onOpenSession(session.id)}>
-                  Open
+                <Button
+                  kind="primary"
+                  size="sm"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onOpenSession(session.id);
+                  }}
+                >
+                  {actionLabel(session.status)}
                 </Button>
               </div>
             );

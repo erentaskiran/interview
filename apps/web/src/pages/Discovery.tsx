@@ -306,6 +306,7 @@ export default function DiscoveryPage({
                     void onToggleLike(template.id, liked);
                   }}
                   onClick={() => onOpenTemplate(template.id)}
+                  onDetails={() => onOpenTemplate(template.id)}
                 />
               );
             })}

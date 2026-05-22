@@ -21,9 +21,15 @@ describe("MockAiProvider", () => {
 
   it("finishes when target count reached", async () => {
     const result = await provider.continueInterview({
+      templateTitle: "Backend Interview",
+      templateCategory: "Engineering",
+      templateDescription: "General backend interview",
+      systemInstruction: "Ask adaptive questions",
       minQuestionCount: 3,
       maxQuestionCount: 12,
       plannedQuestionCount: 4,
+      rubric: {},
+      plannedCoverage: ["depth"],
       turns: [
         { turnIndex: 1, questionText: "Q1", answerTranscript: "A1" },
         { turnIndex: 2, questionText: "Q2", answerTranscript: "A2" },

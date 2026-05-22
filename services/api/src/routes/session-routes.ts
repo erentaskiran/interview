@@ -40,8 +40,10 @@ const mapSessionError = (error: unknown) => {
       return { status: 400, message: "Either answerTranscript or audio payload is required" };
     case "AT_LEAST_ONE_ANSWER_REQUIRED":
       return { status: 400, message: "At least one answered question is required to finish" };
+    case "AI_NEXT_QUESTION_REQUIRED":
+      return { status: 502, message: "AI did not generate the next question" };
     default:
-      return { status: 500, message: "Session processing failed" };
+      return { status: 502, message: "Session processing failed" };
   }
 };
 

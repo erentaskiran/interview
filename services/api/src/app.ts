@@ -20,7 +20,8 @@ export const buildApp = () => {
   app.decorate("speechClient", new SpeechServiceClient({ baseUrl: env.SPEECH_SERVICE_URL }));
 
   void app.register(cors, {
-    origin: true
+    origin: true,
+    methods: ["GET", "HEAD", "POST", "DELETE"]
   });
   void app.register(prismaPlugin);
   void app.register(authPlugin, { jwtSecret: env.JWT_SECRET });

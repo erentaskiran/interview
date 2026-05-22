@@ -157,7 +157,7 @@ export default function TemplateCreatePage({
       />
       <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
         <Topbar
-          crumb={["Templates", "Create"]}
+          crumb={[{ label: "Templates", onClick: onCancel }, "Create"]}
           userInitials={initials(user.displayName)}
           userName={user.displayName}
           userSub={user.email}

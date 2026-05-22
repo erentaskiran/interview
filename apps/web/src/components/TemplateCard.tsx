@@ -15,9 +15,10 @@ export type TemplateCardProps = {
   };
   onLike?: () => void;
   onClick?: () => void;
+  onDetails?: () => void;
 };
 
-export function TemplateCard({ template, onLike, onClick }: TemplateCardProps) {
+export function TemplateCard({ template, onLike, onClick, onDetails }: TemplateCardProps) {
   const category = template.category.toLowerCase();
   const chipKind =
     category === "engineering"
@@ -34,6 +35,9 @@ export function TemplateCard({ template, onLike, onClick }: TemplateCardProps) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Open ${template.title}`}
       className="card"
       style={{
         padding: 16,
@@ -43,13 +47,27 @@ export function TemplateCard({ template, onLike, onClick }: TemplateCardProps) {
         position: "relative",
         cursor: "pointer",
         transition: "box-shadow 0.12s",
+        textAlign: "left",
       }}
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          onClick?.();
+        }
+        if (event.key === " ") {
+          event.preventDefault();
+        }
+      }}
+      onKeyUp={(event) => {
+        if (event.key === " ") {
+          onClick?.();
+        }
+      }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--shadow-sm)";
+        e.currentTarget.style.boxShadow = "var(--shadow-sm)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--shadow-xs)";
+        e.currentTarget.style.boxShadow = "var(--shadow-xs)";
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -101,7 +119,28 @@ export function TemplateCard({ template, onLike, onClick }: TemplateCardProps) {
         <span className="mono" style={{ fontSize: 11, color: "var(--ink-600)" }}>
           {template.questionRange[0]}–{template.questionRange[1]} Q
         </span>
-        <span
+        {onDetails && (
+          <button
+            type="button"
+            className="micro-text"
+            style={{
+              border: 0,
+              background: "transparent",
+              color: "var(--ink-700)",
+              cursor: "pointer",
+              padding: "2px 4px"
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDetails();
+            }}
+          >
+            Details
+          </button>
+        )}
+        <button
+          type="button"
+          aria-label={`${template.isLiked ? "Unlike" : "Like"} ${template.title}`}
           style={{
             marginLeft: "auto",
             display: "inline-flex",
@@ -109,6 +148,9 @@ export function TemplateCard({ template, onLike, onClick }: TemplateCardProps) {
             gap: 4,
             color: template.isLiked ? "var(--err)" : "var(--ink-600)",
             cursor: "pointer",
+            border: 0,
+            background: "transparent",
+            padding: 0,
           }}
           onClick={(e) => {
             e.stopPropagation();
@@ -124,7 +166,7 @@ export function TemplateCard({ template, onLike, onClick }: TemplateCardProps) {
           <span className="mono" style={{ fontSize: 11 }}>
             {template.likeCount}
           </span>
-        </span>
+        </button>
       </div>
     </div>
   );

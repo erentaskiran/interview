@@ -38,6 +38,7 @@ type SessionPageProps = {
   onOpenLiked: () => void;
   onOpenSessions: () => void;
   onOpenSettings: () => void;
+  onDiscoverTemplates: () => void;
   onLogout: () => void;
 };
 
@@ -103,6 +104,7 @@ export default function SessionPage({
   onOpenLiked,
   onOpenSessions,
   onOpenSettings,
+  onDiscoverTemplates,
   onLogout
 }: SessionPageProps) {
   const [answerText, setAnswerText] = useState("");
@@ -112,31 +114,29 @@ export default function SessionPage({
   const [recordingSec, setRecordingSec] = useState(0);
   const [localError, setLocalError] = useState<string | null>(null);
   const [autoReadEnabled, setAutoReadEnabled] = useState(true);
-  const [lastSpokenTurnId, setLastSpokenTurnId] = useState<string | null>(null);
+  const [submittingAnswer, setSubmittingAnswer] = useState(false);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<number | null>(null);
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const activeAudioObjectUrlRef = useRef<string | null>(null);
+  const transcriptRef = useRef<HTMLDivElement | null>(null);
+  const playbackTokenRef = useRef(0);
+  const autoReadTurnIdRef = useRef<string | null>(null);
+  const recordingCancelledRef = useRef(false);
+  const submitInFlightRef = useRef(false);
 
   const activeError = localError ?? error ?? null;
+  const answerBusy = busy || submittingAnswer;
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        window.clearInterval(timerRef.current);
-      }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
+  const isInteractiveSession = session?.status === "active";
   const pendingTurn = useMemo(
-    () => session?.turns.find((turn) => !turn.answerTranscript) ?? null,
-    [session]
+    () =>
+      isInteractiveSession
+        ? (session?.turns.find((turn) => !turn.answerTranscript) ?? null)
+        : null,
+    [isInteractiveSession, session]
   );
 
   const answeredCount = useMemo(
@@ -148,6 +148,8 @@ export default function SessionPage({
   const pendingTurnId = pendingTurn?.id ?? null;
 
   const feedback = safeFeedback(session?.feedback ?? null);
+  const isPastSession = Boolean(session && !isInteractiveSession);
+  const showSidebar = !isInteractiveSession;
 
   const resultData = useMemo(() => {
     if (!session || session.status === "active") {
@@ -174,34 +176,123 @@ export default function SessionPage({
           ? improvements
           : ["No detailed improvements returned by AI."],
       questionCount: answeredCount,
-      duration: msToDuration(ended - started)
+      duration: msToDuration(ended - started),
+      templateTitle: session.template?.title ?? "Interview",
+      templateCategory: session.template?.category ?? "Interview"
     };
   }, [answeredCount, feedback, session]);
 
-  const playQuestionAudio = useCallback(async () => {
-    if (!pendingTurn) {
+  const stopAllPlayback = useCallback(() => {
+    playbackTokenRef.current += 1;
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause();
+      activeAudioRef.current.currentTime = 0;
+      activeAudioRef.current = null;
+    }
+    if (activeAudioObjectUrlRef.current) {
+      URL.revokeObjectURL(activeAudioObjectUrlRef.current);
+      activeAudioObjectUrlRef.current = null;
+    }
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  }, []);
+
+  const cancelRecording = useCallback(() => {
+    recordingCancelledRef.current = true;
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      try {
+        recorder.stop();
+      } catch {
+        // Recorder may already be stopping; cleanup below still releases local state.
+      }
+    }
+    recorderRef.current = null;
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setRecorderState("idle");
+    setRecordedBlob(null);
+    setRecordingSec(0);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopAllPlayback();
+      cancelRecording();
+    };
+  }, [cancelRecording, stopAllPlayback]);
+
+  useEffect(() => {
+    if (!session || isInteractiveSession) {
       return;
     }
+
+    stopAllPlayback();
+    cancelRecording();
+  }, [cancelRecording, isInteractiveSession, session, stopAllPlayback]);
+
+  const playBase64Audio = useCallback(
+    async (payload: TtsPayload, playbackToken: number) => {
+      if (playbackToken !== playbackTokenRef.current) {
+        return false;
+      }
+      const audio = new Audio(`data:${payload.mimeType};base64,${payload.audioBase64}`);
+      activeAudioRef.current = audio;
+      audio.onended = () => {
+        if (activeAudioRef.current === audio) {
+          activeAudioRef.current = null;
+        }
+      };
+      try {
+        await audio.play();
+        return playbackToken === playbackTokenRef.current;
+      } catch (error) {
+        if (activeAudioRef.current === audio) {
+          activeAudioRef.current = null;
+        }
+        throw error;
+      }
+    },
+    []
+  );
+
+  const playQuestionAudio = useCallback(async (turn = pendingTurn) => {
+    if (!turn) {
+      return false;
+    }
+
+    stopAllPlayback();
+    const playbackToken = playbackTokenRef.current;
+
+    const isCurrentPlayback = () => playbackToken === playbackTokenRef.current;
 
     const speakWithBrowserTts = () => {
       if (!window.speechSynthesis) {
         throw new Error("BROWSER_TTS_UNAVAILABLE");
       }
-      const utterance = new SpeechSynthesisUtterance(pendingTurn.questionText);
+      if (!isCurrentPlayback()) {
+        return false;
+      }
+      const utterance = new SpeechSynthesisUtterance(turn.questionText);
       utterance.lang = "en-US";
-      window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
+      return true;
     };
 
     const serverAudio =
-      questionAudioByTurn?.[pendingTurn.turnIndex] ??
-      (pendingTurn.turnIndex === 1 ? firstQuestionAudio ?? undefined : undefined);
+      questionAudioByTurn?.[turn.turnIndex] ??
+      (turn.turnIndex === 1 ? firstQuestionAudio ?? undefined : undefined);
 
     if (serverAudio) {
       try {
-        const audio = new Audio(`data:${serverAudio.mimeType};base64,${serverAudio.audioBase64}`);
-        await audio.play();
-        return;
+        return await playBase64Audio(serverAudio, playbackToken);
       } catch {
         // Fallback to browser speech synthesis below.
       }
@@ -209,69 +300,77 @@ export default function SessionPage({
 
     if (onLoadQuestionAudio) {
       try {
-        const generatedAudio = await onLoadQuestionAudio(pendingTurn.turnIndex);
+        const generatedAudio = await onLoadQuestionAudio(turn.turnIndex);
+        if (!isCurrentPlayback()) {
+          return false;
+        }
         if (generatedAudio) {
-          const audio = new Audio(
-            `data:${generatedAudio.mimeType};base64,${generatedAudio.audioBase64}`
-          );
-          await audio.play();
-          return;
+          try {
+            return await playBase64Audio(generatedAudio, playbackToken);
+          } catch {
+            // Fallback to browser speech synthesis below.
+          }
         }
       } catch {
         // Fallback to browser speech synthesis below.
       }
     }
 
-    speakWithBrowserTts();
-  }, [firstQuestionAudio, onLoadQuestionAudio, pendingTurn, questionAudioByTurn]);
+    return speakWithBrowserTts();
+  }, [
+    firstQuestionAudio,
+    onLoadQuestionAudio,
+    pendingTurn,
+    playBase64Audio,
+    questionAudioByTurn,
+    stopAllPlayback
+  ]);
 
   useEffect(() => {
+    autoReadTurnIdRef.current = null;
+  }, [session?.id]);
+
+  useEffect(() => {
+    if (!autoReadEnabled) {
+      stopAllPlayback();
+      return;
+    }
+
     if (!autoReadEnabled || !pendingTurn) {
       return;
     }
 
-    if (pendingTurnId === lastSpokenTurnId) {
+    if (!pendingTurnId || pendingTurnId === autoReadTurnIdRef.current) {
       return;
     }
 
-    let cancelled = false;
+    autoReadTurnIdRef.current = pendingTurnId;
     const run = async () => {
       try {
-        await playQuestionAudio();
-        if (!cancelled) {
-          setLastSpokenTurnId(pendingTurnId);
-        }
+        await playQuestionAudio(pendingTurn);
       } catch {
         // Browser policy can block autoplay; user can always tap Play question.
       }
     };
 
     void run();
-
-    return () => {
-      cancelled = true;
-    };
   }, [
     autoReadEnabled,
     firstQuestionAudio,
-    lastSpokenTurnId,
     pendingTurn,
     pendingTurnId,
-    playQuestionAudio
+    playQuestionAudio,
+    stopAllPlayback
   ]);
-
-  useEffect(() => {
-    setLastSpokenTurnId(null);
-  }, [session?.id]);
 
   const handlePlayQuestion = async () => {
     if (!pendingTurn) {
       return;
     }
     setLocalError(null);
+    autoReadTurnIdRef.current = pendingTurnId;
     try {
-      await playQuestionAudio();
-      setLastSpokenTurnId(pendingTurnId);
+      await playQuestionAudio(pendingTurn);
     } catch {
       setLocalError("Question audio could not be played on this browser.");
     }
@@ -279,6 +378,7 @@ export default function SessionPage({
 
   const startRecording = async () => {
     setLocalError(null);
+    stopAllPlayback();
     try {
       if (!navigator.mediaDevices?.getUserMedia) {
         setLocalError("Audio recording is not supported in this browser.");
@@ -300,17 +400,29 @@ export default function SessionPage({
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: recorder.mimeType });
-        setRecordedBlob(blob);
-        setRecordedMimeType(recorder.mimeType || preferredMimeType);
-        setRecorderState("review");
         if (timerRef.current) {
           window.clearInterval(timerRef.current);
           timerRef.current = null;
         }
         stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        recorderRef.current = null;
+
+        if (recordingCancelledRef.current) {
+          recordingCancelledRef.current = false;
+          setRecordedBlob(null);
+          setRecorderState("idle");
+          setRecordingSec(0);
+          return;
+        }
+
+        const blob = new Blob(chunks, { type: recorder.mimeType });
+        setRecordedBlob(blob);
+        setRecordedMimeType(recorder.mimeType || preferredMimeType);
+        setRecorderState("review");
       };
 
+      recordingCancelledRef.current = false;
       recorderRef.current = recorder;
       streamRef.current = stream;
       setRecordingSec(0);
@@ -326,14 +438,43 @@ export default function SessionPage({
   };
 
   const stopRecording = () => {
-    recorderRef.current?.stop();
+    recordingCancelledRef.current = false;
+    if (recorderRef.current && recorderRef.current.state !== "inactive") {
+      recorderRef.current.stop();
+    }
+  };
+
+  const pauseRecording = () => {
+    if (recorderRef.current?.state !== "recording") {
+      return;
+    }
+    recorderRef.current.pause();
+    setRecorderState("paused");
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const resumeRecording = () => {
+    if (recorderRef.current?.state !== "paused") {
+      return;
+    }
+    recorderRef.current.resume();
+    setRecorderState("recording");
+    timerRef.current = window.setInterval(() => {
+      setRecordingSec((prev) => prev + 1);
+    }, 1000);
   };
 
   const submitRecordedAnswer = async () => {
-    if (!recordedBlob) {
+    if (!recordedBlob || answerBusy || submitInFlightRef.current) {
       return;
     }
     setLocalError(null);
+    stopAllPlayback();
+    submitInFlightRef.current = true;
+    setSubmittingAnswer(true);
     setRecorderState("processing");
     try {
       const base64 = await toBase64(recordedBlob);
@@ -347,33 +488,64 @@ export default function SessionPage({
     } catch {
       setRecorderState("review");
       setLocalError("Failed to send audio answer.");
+    } finally {
+      submitInFlightRef.current = false;
+      setSubmittingAnswer(false);
     }
   };
 
   const submitTextAnswer = async () => {
+    if (answerBusy || submitInFlightRef.current) {
+      return;
+    }
+    if (!pendingTurn) {
+      setLocalError("No pending question is available. Refreshing the session may be needed.");
+      return;
+    }
     if (!answerText.trim()) {
       setLocalError("Type an answer or record audio.");
       return;
     }
     setLocalError(null);
+    stopAllPlayback();
+    submitInFlightRef.current = true;
+    setSubmittingAnswer(true);
     try {
       await onSubmitAnswer({ answerTranscript: answerText.trim() });
       setAnswerText("");
-    } catch {
-      setLocalError("Failed to submit text answer.");
+    } catch (submitError) {
+      setLocalError(
+        submitError instanceof Error ? submitError.message : "Failed to submit text answer."
+      );
+    } finally {
+      submitInFlightRef.current = false;
+      setSubmittingAnswer(false);
     }
   };
 
+  const handleManualFinish = async () => {
+    setLocalError(null);
+    stopAllPlayback();
+    if (answeredCount < 1) {
+      setLocalError("Submit at least one answer before finishing.");
+      return;
+    }
+    cancelRecording();
+    await onManualFinish();
+  };
+
   return (
-    <div className="page">
-      <Sidebar
-        active="sessions"
-        user={{ name: user.displayName, sub: user.email }}
-        {...(counts ? { counts } : {})}
-      />
+    <div className={`page${showSidebar ? "" : " page--bare"}`}>
+      {showSidebar && (
+        <Sidebar
+          active="sessions"
+          user={{ name: user.displayName, sub: user.email }}
+          {...(counts ? { counts } : {})}
+        />
+      )}
       <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
         <Topbar
-          crumb={["Session", session?.template?.title ?? "Interview"]}
+          crumb={[{ label: "Sessions", onClick: onOpenSessions }, session?.template?.title ?? "Interview"]}
           userInitials={initials(user.displayName)}
           userName={user.displayName}
           userSub={user.email}
@@ -381,7 +553,9 @@ export default function SessionPage({
           onOpenLiked={onOpenLiked}
           onOpenSessions={onOpenSessions}
           onOpenSettings={onOpenSettings}
+          onDiscoverTemplates={onDiscoverTemplates}
           onLogout={onLogout}
+          hideSearch={isInteractiveSession}
           actions={
             <Button kind="ghost" size="sm" icon="book" onClick={onOpenTemplate}>
               Template
@@ -414,7 +588,7 @@ export default function SessionPage({
             </div>
           )}
 
-          {session && session.status === "active" && (
+          {session && isInteractiveSession && (
             <>
               <div className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
                 <SessionProgress
@@ -438,7 +612,15 @@ export default function SessionPage({
                     kind="ghost"
                     icon={autoReadEnabled ? "check" : "pause"}
                     onClick={() => {
-                      setAutoReadEnabled((current) => !current);
+                      setAutoReadEnabled((current) => {
+                        const next = !current;
+                        if (!next) {
+                          stopAllPlayback();
+                        } else {
+                          autoReadTurnIdRef.current = null;
+                        }
+                        return next;
+                      });
                     }}
                   >
                     Auto read {autoReadEnabled ? "on" : "off"}
@@ -447,9 +629,9 @@ export default function SessionPage({
                     kind="ghost"
                     icon="stop"
                     onClick={() => {
-                      void onManualFinish();
+                      void handleManualFinish();
                     }}
-                    disabled={answeredCount < 1 || busy}
+                    loading={busy}
                   >
                     Finish now
                   </Button>
@@ -504,7 +686,7 @@ export default function SessionPage({
                   value={answerText}
                   onChange={(event) => setAnswerText(event.target.value)}
                   placeholder="Type your answer if you prefer not to record audio."
-                  disabled={busy}
+                  disabled={answerBusy || !pendingTurn}
                 />
                 <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                   <Button
@@ -513,7 +695,8 @@ export default function SessionPage({
                     onClick={() => {
                       void submitTextAnswer();
                     }}
-                    loading={busy}
+                    loading={answerBusy}
+                    disabled={!pendingTurn}
                   >
                     Submit answer
                   </Button>
@@ -527,6 +710,8 @@ export default function SessionPage({
                   void startRecording();
                 }}
                 onStop={stopRecording}
+                onPause={pauseRecording}
+                onResume={resumeRecording}
                 onSubmit={() => {
                   void submitRecordedAnswer();
                 }}
@@ -534,10 +719,21 @@ export default function SessionPage({
                   if (!recordedBlob) {
                     return;
                   }
+                  stopAllPlayback();
                   const url = URL.createObjectURL(recordedBlob);
                   const audio = new Audio(url);
+                  activeAudioObjectUrlRef.current = url;
+                  activeAudioRef.current = audio;
                   void audio.play();
-                  audio.onended = () => URL.revokeObjectURL(url);
+                  audio.onended = () => {
+                    if (activeAudioRef.current === audio) {
+                      activeAudioRef.current = null;
+                    }
+                    if (activeAudioObjectUrlRef.current === url) {
+                      URL.revokeObjectURL(url);
+                      activeAudioObjectUrlRef.current = null;
+                    }
+                  };
                 }}
                 onReRecord={() => {
                   setRecordedBlob(null);
@@ -557,11 +753,13 @@ export default function SessionPage({
               improvements={resultData.improvements}
               questionCount={resultData.questionCount}
               duration={resultData.duration}
+              templateTitle={resultData.templateTitle}
+              templateCategory={resultData.templateCategory}
               onRetry={() => {
                 void onRetryFromTemplate();
               }}
               onTranscript={() => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                transcriptRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
               onExport={() => {
                 const lines: string[] = [];
@@ -579,6 +777,24 @@ export default function SessionPage({
                 URL.revokeObjectURL(url);
               }}
             />
+          )}
+
+          {session && isPastSession && (
+            <div
+              ref={transcriptRef}
+              className="card"
+              style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14 }}
+            >
+              <div className="h3" style={{ fontWeight: 500 }}>
+                Transcript
+              </div>
+              {session.turns.map((turn) => (
+                <div key={turn.id} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div className="bubble bubble--ai">{turn.questionText}</div>
+                  <div className="bubble bubble--me">{turn.answerTranscript ?? ""}</div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

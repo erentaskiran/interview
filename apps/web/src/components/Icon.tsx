@@ -130,17 +130,20 @@ export function IconBtn({
   size,
   onClick,
   style,
+  ariaLabel,
 }: {
   name: IconName;
   size?: "sm" | "md";
   onClick?: () => void;
   style?: CSSProperties;
+  ariaLabel?: string;
 }) {
   return (
     <button
       className={`btn btn--ghost btn--icon${size === "sm" ? " btn--sm" : ""}`}
       onClick={onClick}
       style={style}
+      aria-label={ariaLabel ?? name}
     >
       <Icon name={name} size={size === "sm" ? 14 : 15} />
     </button>

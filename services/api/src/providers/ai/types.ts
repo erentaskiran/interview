@@ -23,9 +23,15 @@ export interface StartInterviewResult {
 }
 
 export interface ContinueInterviewInput {
+  templateTitle: string;
+  templateCategory: string;
+  templateDescription: string;
+  systemInstruction: string;
   minQuestionCount: number;
   maxQuestionCount: number;
   plannedQuestionCount: number;
+  rubric: unknown;
+  plannedCoverage: unknown;
   turns: SessionTurnContext[];
 }
 
