@@ -360,7 +360,6 @@ export default function App() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const menu = menuActions(navigate);
-    const [searchParams, setSearchParams] = useSearchParams();
     const [templates, setTemplates] = useState<Template[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

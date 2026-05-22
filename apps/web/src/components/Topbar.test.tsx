@@ -1,18 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { Topbar } from "./Topbar";
 
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return <MemoryRouter>{children}</MemoryRouter>;
+}
+
 describe("Topbar", () => {
-  it("submits global template search", async () => {
-    const user = userEvent.setup();
-    const onSearch = vi.fn();
+  it("renders search input with keyboard shortcut hint", async () => {
+    render(<Topbar title="Discover" />, { wrapper: Wrapper });
 
-    render(<Topbar title="Discover" onSearch={onSearch} />);
-
-    await user.type(screen.getByLabelText("Search templates"), "frontend systems{Enter}");
-
-    expect(onSearch).toHaveBeenCalledWith("frontend systems");
+    expect(screen.getByPlaceholderText("Search templates, prompts, people\u2026")).toBeInTheDocument();
+    expect(screen.getByText("\u2318K")).toBeInTheDocument();
   });
 
   it("renders clickable non-current breadcrumbs", async () => {
@@ -23,7 +24,8 @@ describe("Topbar", () => {
       <Topbar
         crumb={[{ label: "Discover", onClick: onDiscover }, "Engineering"]}
         hideSearch
-      />
+      />,
+      { wrapper: Wrapper }
     );
 
     await user.click(screen.getByRole("button", { name: "Discover" }));
@@ -43,7 +45,8 @@ describe("Topbar", () => {
         hideSearch
         onOpenSessions={onOpenSessions}
         onDiscoverTemplates={onDiscoverTemplates}
-      />
+      />,
+      { wrapper: Wrapper }
     );
 
     await user.click(screen.getByRole("button", { name: /notifications/i }));
